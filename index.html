@@ -34,13 +34,17 @@ button,input{font-family:inherit}
 .total small{display:block;font-size:15px;font-weight:500;opacity:.75}
 .total .amount{font-size:52px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
 .total .meta{text-align:right;font-size:15px;font-weight:500;opacity:.75}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
-.tab{padding:12px 4px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer}
+.tabs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr);gap:5px;margin-bottom:14px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:13px;font-weight:600;line-height:1.15;white-space:nowrap;cursor:pointer}
+.tab .e{font-size:20px;line-height:1.1}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .field{display:flex;gap:8px;margin-bottom:12px}
 .field input{flex:1;min-width:0;padding:13px 14px;font-size:19px;font-weight:500;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
 .field .ghost{padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:16px;font-weight:600;cursor:pointer}
 .types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.types.t3{grid-template-columns:repeat(3,1fr);gap:6px}
+.types.t3 .type{padding:10px 6px 10px 14px}
+.types.t3 .type b{font-size:17px}
 .type{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:11px 12px 11px 18px;color:var(--ink);cursor:pointer;overflow:hidden}
 .type::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--c)}
 .type b{display:block;font-size:19px;font-weight:600}
@@ -88,6 +92,37 @@ details .list{padding-bottom:12px}
 .cal button.has .dn{color:var(--ink)}
 .cal button.today{box-shadow:inset 0 0 0 2px var(--blue)}
 
+.exp{display:block;width:100%;margin-top:16px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
+.exp:active{transform:scale(.97)}
+
+/* onglet cotisations */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.seg button{padding:10px 4px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:17px;font-weight:600;cursor:pointer;transition:transform .08s ease}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg button:active,.opt:active{transform:scale(.97)}
+.cbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px;margin-bottom:8px}
+.crow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:18px}
+.crow:last-child{border-bottom:0}
+.crow span i{font-style:normal;color:var(--muted);font-size:15px;margin-left:8px}
+.crow b{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.crow.sub b{font-weight:600}
+.crow.tot{font-size:19px}
+.crow.net{font-size:23px}
+.crow.net b{color:var(--green)}
+.opt{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
+.opt small{display:block;margin-top:2px;font-size:15px;font-weight:500;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--ink);background:color-mix(in srgb,var(--green) 16%,var(--card))}
+.gauge{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0 6px}
+.gauge i{display:block;height:100%;border-radius:99px;animation:grow .5s ease}
+@keyframes grow{from{width:0}}
+.crow label{font-size:18px}
+.rwrap{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.crow .rwrap i{margin:0;font-size:17px}
+.rin{width:120px;padding:10px 12px;font-size:19px;font-weight:600;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);text-align:right}
+.cnote{padding:0 0 6px;font-size:16px;color:var(--muted)}
+.cnote p{margin:0 0 10px}
+.cnote b{color:var(--ink)}
+
 /* message "Enregistré" */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 104px);transform:translate(-50%,-12px) scale(.96);background:var(--green);color:#fff;padding:11px 20px;border-radius:999px;font-size:19px;font-weight:700;opacity:0;pointer-events:none;z-index:5;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:opacity .2s ease,transform .25s cubic-bezier(.2,1.4,.4,1);white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
@@ -118,22 +153,24 @@ main.anim{animation:viewIn .22s ease-out}
     <div class="meta" id="tm"></div>
   </div>
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="jour">Jour</button>
-    <button class="tab" role="tab" data-tab="semaine">Semaine</button>
-    <button class="tab" role="tab" data-tab="mois">Mois</button>
+    <button class="tab" role="tab" data-tab="jour"><span class="e">☀️</span>Jour</button>
+    <button class="tab" role="tab" data-tab="semaine"><span class="e">📅</span>Semaine</button>
+    <button class="tab" role="tab" data-tab="mois"><span class="e">🗓️</span>Mois</button>
+    <button class="tab" role="tab" data-tab="cotis"><span class="e">🧾</span>Cotisations</button>
+    <button class="tab" role="tab" data-tab="frais"><span class="e">⛽</span>Frais</button>
   </div>
   <main id="main"></main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 var TYPES=[
-  {id:"aerien",name:"Aérien",price:110,c:"var(--blue)"},
-  {id:"souterrain",name:"Souterrain",price:90,c:"var(--orange)"},
-  {id:"aero",name:"Aéro-souterrain",price:100,c:"var(--green)"},
-  {id:"facade",name:"Façade",price:60,c:"var(--brown)"},
-  {id:"immeuble",name:"Immeuble",price:35,c:"var(--slate)"},
-  {id:"sav",name:"SAV",price:15,c:"var(--white)"},
-  {id:"plp",name:"PLP",price:20,c:"var(--teal)"}
+  {id:"aerien",e:"🪜",name:"Aérien",price:110,c:"var(--blue)"},
+  {id:"souterrain",e:"⛏️",name:"Souterrain",price:90,c:"var(--orange)"},
+  {id:"aero",e:"↕️",name:"Aéro-souterrain",price:100,c:"var(--green)"},
+  {id:"facade",e:"🏠",name:"Façade",price:60,c:"var(--brown)"},
+  {id:"immeuble",e:"🏢",name:"Immeuble",price:35,c:"var(--slate)"},
+  {id:"sav",e:"🔧",name:"SAV",price:15,c:"var(--white)"},
+  {id:"plp",e:"🔌",name:"PLP",price:20,c:"var(--teal)"}
 ];
 var TM={};TYPES.forEach(function(t){TM[t.id]=t});
 var KEY="ma-journee-fibre-v2";
@@ -153,11 +190,11 @@ function sum(l){return l.reduce(function(a,i){return a+i.p},0)}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function plural(n){return n+" intervention"+(n>1?"s":"")}
 
-var S={tab:"jour",date:today(),type:null,num:"",msg:"",warn:false,del:null,newId:null,anim:false,mY:new Date().getFullYear(),mM:new Date().getMonth(),open:{}};
+var S={tab:"jour",date:today(),type:null,num:"",msg:"",warn:false,del:null,newId:null,anim:false,mY:new Date().getFullYear(),mM:new Date().getMonth(),cP:"m",cY:new Date().getFullYear(),cM:new Date().getMonth(),open:{}};
 
 function itemHTML(i,withDel){
   var t=TM[i.t]||{name:i.t,c:"var(--slate)"};
-  return '<div class="item'+(i.id===S.newId?' new':'')+'" style="--c:'+t.c+'"><div class="n">'+esc(i.n)+'<div class="t">'+t.name+'</div></div><div class="p">'+eur(i.p)+'</div>'+
+  return '<div class="item'+(i.id===S.newId?' new':'')+'" style="--c:'+t.c+'"><div class="n">'+esc(i.n)+'<div class="t">'+(t.e?t.e+' ':'')+t.name+'</div></div><div class="p">'+eur(i.p)+'</div>'+
     (withDel?'<button class="del'+(S.del===i.id?' arm':'')+'" data-act="del" data-id="'+i.id+'" aria-label="Supprimer">'+(S.del===i.id?'Supprimer ?':'✕')+'</button>':'')+'</div>';
 }
 function listHTML(l,withDel){
@@ -175,7 +212,7 @@ function viewJour(){
   var isToday=S.date===today();
   setBanner(isToday?"Total d'aujourd'hui":"Total du "+lbl(S.date,{day:"numeric",month:"long"}),sum(l),plural(l.length));
   var types=TYPES.map(function(t){
-    return '<button class="type" style="--c:'+t.c+'" data-act="type" data-id="'+t.id+'" aria-pressed="'+(S.type===t.id)+'"><b>'+t.name+'</b><span>'+t.price+' €</span></button>';
+    return '<button class="type" style="--c:'+t.c+'" data-act="type" data-id="'+t.id+'" aria-pressed="'+(S.type===t.id)+'"><b>'+(t.e?t.e+' ':'')+t.name+'</b><span>'+t.price+' €</span></button>';
   }).join("");
   return '<div class="field"><input type="date" id="dt" value="'+S.date+'" aria-label="Date">'+(isToday?'':'<button class="ghost" data-act="now">Aujourd\'hui</button>')+'</div>'+
     '<div class="types">'+types+'</div>'+
@@ -223,16 +260,286 @@ function viewMois(){
     html+='<details data-wk="'+w.from+'" class="'+(l.length?'':'zero')+'"'+(S.open[w.from]?' open':'')+'><summary><div class="l"><b>Du '+lbl(w.from,{day:"numeric"})+' au '+lbl(w.to,{day:"numeric",month:"short"})+'</b><span>'+plural(l.length)+'</span></div><div class="r">'+eur(sum(l))+'</div></summary>'+
       (l.length?'<div class="list">'+l.slice().reverse().map(function(i){return itemHTML(i,false).replace('class="n">','class="n">'+lbl(i.d,{day:"numeric",month:"short"})+' · ')}).join("")+'</div>':'')+'</details>';
   });
+  html+='<button class="exp" data-act="export">📄 Exporter '+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+' en PDF</button><div class="note">Relevé du mois affiché : récapitulatif par type, détail jour par jour et total par semaine.</div>';
   return html;
+}
+
+function exportPDF(){
+  var Y=S.mY,Mo=S.mM,pre=Y+"-"+pad(Mo+1)+"-",first=pre+"01",lastKey=pre+pad(new Date(Y,Mo+1,0).getDate());
+  var list=items.filter(function(i){return i.d.indexOf(pre)===0}).sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:a.id-b.id});
+  if(!list.length){toast("Rien à exporter ce mois-ci",true);return}
+  var mois=new Date(Y,Mo,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});mois=mois.charAt(0).toUpperCase()+mois.slice(1);
+  var W=595,H=842,M=40,R=W-M-8,pages=[],c="",y=0;
+  var INK="0.1 0.13 0.18",MUT="0.42 0.45 0.5",LN="0.86 0.88 0.9",BG="0.95 0.96 0.97",BR="0.12 0.16 0.22",WH="1 1 1";
+  function pe(t){return String(t).replace(/€/g,"\x80").replace(/[^\x00-\xff]/g,"?").replace(/[\\()]/g,"\\$&")}
+  function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ")}
+  function tw(t,sz,bold){var w=0;for(var k=0;k<t.length;k++){var ch=t.charAt(k);w+=(ch===" "||ch==="."||ch===","||ch==="'")?278:/[A-Z]/.test(ch)?690:556}return w*sz/1000*(bold?1.05:1)}
+  function txt(x,yy,t,sz,bold,col,right){t=String(t);var xx=right?x-tw(t,sz,bold):x;c+=col+" rg BT /"+(bold?"F2":"F1")+" "+sz+" Tf "+xx.toFixed(1)+" "+yy.toFixed(1)+" Td ("+pe(t)+") Tj ET\n"}
+  function box(x,yy,w,h,col){c+=col+" rg "+x+" "+yy+" "+w+" "+h+" re f\n"}
+  function hl(yy){c+=LN+" RG 0.6 w "+M+" "+yy+" m "+(W-M)+" "+yy+" l S\n"}
+  function newPage(){if(c)pages.push(c);c="";y=H-M}
+  function ensure(h,head){if(y-h<46){newPage();if(head)head()}}
+  function head(cols){box(M,y-20,W-2*M,20,BG);cols.forEach(function(cl){txt(cl[1],y-14,cl[0],8.5,true,MUT,cl[2])});y-=20}
+
+  newPage();
+  box(0,H-84,W,84,BR);
+  txt(M,H-44,"Relevé d'interventions",22,true,WH);
+  txt(M,H-64,"Ma journée fibre",10,false,"0.75 0.78 0.82");
+  txt(W-M,H-44,mois,14,true,WH,true);
+  txt(W-M,H-64,"Édité le "+lbl(today(),{day:"numeric",month:"long",year:"numeric"}),9,false,"0.75 0.78 0.82",true);
+  y=H-84-30;
+
+  var jours={};list.forEach(function(i){jours[i.d]=1});
+  var nj=Object.keys(jours).length,tot=sum(list),kw=(W-2*M-20)/3;
+  [["INTERVENTIONS",String(list.length)],["JOURS TRAVAILLÉS",String(nj)],["TOTAL",fmt(tot)+" €"]].forEach(function(v,idx){
+    var x=M+idx*(kw+10);box(x,y-52,kw,52,BG);txt(x+12,y-18,v[0],8,true,MUT);txt(x+12,y-42,v[1],18,true,INK);
+  });
+  y-=52+28;
+
+  txt(M,y,"Récapitulatif par type",12,true,INK);y-=12;
+  head([["TYPE",M+8],["NOMBRE",M+270,1],["TARIF",M+360,1],["MONTANT",R,1]]);
+  TYPES.forEach(function(t){
+    var l=list.filter(function(i){return i.t===t.id});if(!l.length)return;
+    var same=l.every(function(i){return i.p===l[0].p});
+    txt(M+8,y-14,t.name,10,false,INK);txt(M+270,y-14,l.length,10,false,INK,1);
+    txt(M+360,y-14,same?fmt(l[0].p)+" €":"variable",10,false,MUT,1);txt(R,y-14,fmt(sum(l))+" €",10,true,INK,1);
+    y-=20;hl(y);
+  });
+  box(M,y-22,W-2*M,22,BG);txt(M+8,y-15,"Total",10,true,INK);txt(M+270,y-15,list.length,10,true,INK,1);txt(R,y-15,fmt(tot)+" €",10,true,INK,1);
+  y-=22+30;
+
+  ensure(100);
+  txt(M,y,"Détail des interventions",12,true,INK);y-=12;
+  function dhead(){head([["DATE",M+8],["N°",M+150],["TYPE",M+230],["PRIX",R,1]])}
+  dhead();
+  var wk=[],idx={};
+  list.forEach(function(i){var mk=mondayKey(i.d);if(!(mk in idx)){idx[mk]=wk.length;wk.push({k:mk,l:[]})}wk[idx[mk]].l.push(i)});
+  wk.forEach(function(w){
+    w.l.forEach(function(i,ix){
+      ensure(ix===w.l.length-1?52:24,dhead);
+      txt(M+8,y-14,lbl(i.d,{weekday:"short",day:"2-digit",month:"2-digit"}),10,false,INK);
+      txt(M+150,y-14,i.n,10,false,INK);
+      txt(M+230,y-14,TM[i.t]?TM[i.t].name:i.t,10,false,INK);
+      txt(R,y-14,fmt(i.p)+" €",10,false,INK,1);
+      y-=20;hl(y);
+    });
+    var f=w.k<first?first:w.k,t=addDays(w.k,6);if(t>lastKey)t=lastKey;
+    ensure(30,dhead);
+    box(M,y-22,W-2*M,22,BG);
+    txt(M+8,y-15,"Du "+lbl(f,{day:"numeric"})+" au "+lbl(t,{day:"numeric",month:"short"})+" · "+plural(w.l.length),9.5,true,INK);
+    txt(R,y-15,fmt(sum(w.l))+" €",10,true,INK,1);
+    y-=22+8;
+  });
+  ensure(34);y-=4;
+  box(M,y-30,W-2*M,30,BR);
+  txt(M+12,y-20,"TOTAL "+mois.toUpperCase()+" · "+plural(list.length),10,true,WH);
+  txt(R,y-20,fmt(tot)+" €",13,true,WH,1);
+  pages.push(c);
+  for(var p=0;p<pages.length;p++){
+    c="";txt(M,24,"Ma journée fibre · "+mois,8,false,MUT);txt(W-M,24,"Page "+(p+1)+"/"+pages.length,8,false,MUT,1);pages[p]="1 1 1 rg 0 0 "+W+" "+H+" re f\n"+pages[p]+c;
+  }
+
+  var n=pages.length,objs=[],kids=[];
+  for(var q=0;q<n;q++)kids.push((5+2*q)+" 0 R");
+  objs[1]="<< /Type /Catalog /Pages 2 0 R >>";
+  objs[2]="<< /Type /Pages /Kids ["+kids.join(" ")+"] /Count "+n+" >>";
+  objs[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  objs[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  for(var r=0;r<n;r++){
+    objs[5+2*r]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents "+(6+2*r)+" 0 R >>";
+    objs[6+2*r]="<< /Length "+pages[r].length+" >>\nstream\n"+pages[r]+"endstream";
+  }
+  var out="%PDF-1.4\n",offs=[];
+  for(var o=1;o<objs.length;o++){offs[o]=out.length;out+=o+" 0 obj\n"+objs[o]+"\nendobj\n"}
+  var xr=out.length;
+  out+="xref\n0 "+objs.length+"\n0000000000 65535 f \n";
+  for(var z=1;z<objs.length;z++)out+=("0000000000"+offs[z]).slice(-10)+" 00000 n \n";
+  out+="trailer\n<< /Size "+objs.length+" /Root 1 0 R >>\nstartxref\n"+xr+"\n%%EOF";
+  var u=new Uint8Array(out.length);for(var b=0;b<out.length;b++)u[b]=out.charCodeAt(b)&255;
+
+  var name="releve-"+Y+"-"+pad(Mo+1)+".pdf",file=null;
+  try{file=new File([u],name,{type:"application/pdf"})}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:name}).then(function(){toast("✓ PDF exporté")}).catch(function(){});
+    return;
+  }
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([u],{type:"application/pdf"}));a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000);
+  toast("✓ PDF exporté");
+}
+
+var KEYC="ma-journee-fibre-cotis",DEF={rate:21.2,cfp:0.3,vl:1.7,plafond:83600},cfg={acre:0,vl:false,tips:true,rates:{rate:DEF.rate,cfp:DEF.cfp,vl:DEF.vl,plafond:DEF.plafond}};
+try{
+  var rc=JSON.parse(localStorage.getItem(KEYC)||"null");
+  if(rc&&typeof rc==="object"){
+    cfg.acre=[0,1,2].indexOf(rc.acre)>=0?rc.acre:0;cfg.vl=!!rc.vl;cfg.tips=rc.tips!==false;
+    if(rc.rates&&typeof rc.rates==="object")["rate","cfp","vl","plafond"].forEach(function(k){var v=rc.rates[k];if(typeof v==="number"&&isFinite(v)&&v>=0)cfg.rates[k]=v});
+  }
+}catch(e){}
+function saveCfg(){try{localStorage.setItem(KEYC,JSON.stringify(cfg))}catch(e){}}
+var COEF=[1,0.5,0.75];
+function r2(v){return Math.round(v*100)/100}
+function eur2(v){v=r2(v);return v.toLocaleString("fr-FR",{minimumFractionDigits:v%1===0?0:2,maximumFractionDigits:2})+" €"}
+function pct(x){return String(+x.toFixed(3)).replace(".",",")+" %"}
+function isCustom(){return Object.keys(DEF).some(function(k){return cfg.rates[k]!==DEF[k]})}
+function calc(ca){
+  var R=cfg.rates,rate=R.rate*COEF[cfg.acre],cot=r2(ca*rate/100),cfp=r2(ca*R.cfp/100),imp=cfg.vl?r2(ca*R.vl/100):0,tot=r2(cot+cfp+imp);
+  return {rate:rate,cot:cot,cfp:cfp,imp:imp,tot:tot,net:r2(ca-tot)};
+}
+
+/* notes de frais */
+var KEYF="ma-journee-fibre-frais",exps=[];
+var FK=[
+  {id:"gasoil",e:"⛽",name:"Gasoil",sub:"dépense",c:"var(--orange)",inc:false},
+  {id:"repas",e:"🍽️",name:"Repas",sub:"dépense",c:"var(--blue)",inc:false},
+  {id:"pourboire",e:"💶",name:"Pourboire",sub:"reçu",c:"var(--green)",inc:true}
+],FM={};FK.forEach(function(k){FM[k.id]=k});
+try{var rf=JSON.parse(localStorage.getItem(KEYF)||"[]");if(Array.isArray(rf))exps=rf.filter(function(x){return x&&FM[x.k]&&typeof x.a==="number"&&isFinite(x.a)&&typeof x.d==="string"})}catch(e){}
+function saveF(){try{localStorage.setItem(KEYF,JSON.stringify(exps))}catch(e){}}
+function sumA(l){return r2(l.reduce(function(a,x){return a+x.a},0))}
+function expIn(from,to,k){return exps.filter(function(x){return x.d>=from&&x.d<=to&&(!k||x.k===k)})}
+var AMT=/^\d{1,6}([.,]\d{1,2})?$/;
+function amt(s){s=String(s).trim();return AMT.test(s)?parseFloat(s.replace(",",".")):NaN}
+S.fDate=today();S.fType=null;S.fNum="";S.fY=S.cY;S.fM=S.cM;S.fNew=null;S.fDel=null;S.cEdit=false;
+
+function mRange(y,m){var mm=pad(m+1);return {from:y+"-"+mm+"-01",to:y+"-"+mm+"-"+pad(new Date(y,m+1,0).getDate()),label:new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}}
+function cRange(){
+  var y=S.cY,m=S.cM;
+  if(S.cP==="m")return mRange(y,m);
+  if(S.cP==="t"){
+    var q=Math.floor(m/3),em=q*3+2;
+    return {from:y+"-"+pad(q*3+1)+"-01",to:y+"-"+pad(em+1)+"-"+pad(new Date(y,em+1,0).getDate()),
+      label:"T"+(q+1)+" "+y+" · "+new Date(y,q*3,1).toLocaleDateString("fr-FR",{month:"short"})+"–"+new Date(y,em,1).toLocaleDateString("fr-FR",{month:"short"})};
+  }
+  return {from:y+"-01-01",to:y+"-12-31",label:String(y)};
+}
+function opt(act,v,on,title,sub){
+  return '<button class="opt" data-act="'+act+'" data-v="'+v+'" aria-pressed="'+on+'">'+title+'<small>'+sub+'</small></button>';
+}
+function rin(id,label,unit,v){
+  return '<div class="crow"><label for="'+id+'">'+label+'</label><span class="rwrap"><input class="rin" id="'+id+'" type="text" inputmode="decimal" value="'+String(v).replace(".",",")+'" autocomplete="off"><i>'+unit+'</i></span></div>';
+}
+function saveRates(){
+  var v={};
+  var ok=[["rt-rate","rate",100],["rt-cfp","cfp",100],["rt-vl","vl",100],["rt-pl","plafond",100000000]].every(function(x){
+    var s=(document.getElementById(x[0]).value||"").trim().replace(/\s/g,"").replace(",",".");
+    if(!/^\d{1,9}(\.\d{1,3})?$/.test(s))return false;
+    var n=parseFloat(s);if(!(n>=0&&n<=x[2]))return false;
+    v[x[1]]=n;return true;
+  });
+  if(!ok){toast("Valeur invalide",true);return}
+  cfg.rates=v;saveCfg();S.cEdit=false;render();toast("✓ Taux enregistrés");
+}
+function viewCotis(){
+  var r=cRange(),R=cfg.rates,l=items.filter(function(i){return i.d>=r.from&&i.d<=r.to}),ca0=sum(l);
+  var tip=cfg.tips?sumA(expIn(r.from,r.to,"pourboire")):0,ca=r2(ca0+tip),c=calc(ca);
+  var yF=S.cY+"-01-01",yT=S.cY+"-12-31";
+  var yr=r2(sum(items.filter(function(i){return i.d>=yF&&i.d<=yT}))+(cfg.tips?sumA(expIn(yF,yT,"pourboire")):0)),yp=R.plafond>0?Math.min(100,yr/R.plafond*100):0;
+  setBanner("Il te reste · "+r.label,Math.round(c.net),plural(l.length));
+  var h='<div class="seg">'+[["m","Mois"],["t","Trimestre"],["a","Année"]].map(function(x){
+    return '<button data-act="cper" data-p="'+x[0]+'" aria-pressed="'+(S.cP===x[0])+'">'+x[1]+'</button>';
+  }).join("")+'</div>';
+  h+='<div class="nav"><button data-act="cprev" aria-label="Période précédente">‹</button><b>'+r.label+'</b><button data-act="cnext" aria-label="Période suivante">›</button></div>';
+  if(!l.length&&!tip)h+='<div class="empty">Aucune intervention sur cette période.</div>';
+  h+='<div class="cbox">'+
+    '<div class="crow"><span>💶 Chiffre d\'affaires'+(tip>0?'<i>dont '+eur2(tip)+' de pourboires</i>':'')+'</span><b>'+eur2(ca)+'</b></div>'+
+    '<div class="crow sub"><span>🏛️ Cotisations sociales<i>'+pct(c.rate)+'</i></span><b>− '+eur2(c.cot)+'</b></div>'+
+    '<div class="crow sub"><span>🎓 Formation pro (CFP)<i>'+pct(R.cfp)+'</i></span><b>− '+eur2(c.cfp)+'</b></div>'+
+    (cfg.vl?'<div class="crow sub"><span>🧾 Impôt (versement libératoire)<i>'+pct(R.vl)+'</i></span><b>− '+eur2(c.imp)+'</b></div>':'')+
+    '<div class="crow tot"><span>📤 À payer à l\'URSSAF</span><b>'+eur2(c.tot)+'</b></div>'+
+    '<div class="crow net"><span>✅ Il te reste</span><b>'+eur2(c.net)+'</b></div>'+
+  '</div>';
+  if(ca>0)h+='<div class="note">Soit '+pct(c.tot/ca*100)+' de ton CA pour l\'URSSAF. Il te reste '+pct(c.net/ca*100)+'.</div>';
+  if(!cfg.vl)h+='<div class="note">L\'impôt sur le revenu n\'est pas inclus : sans versement libératoire, il se calcule l\'an prochain sur ta déclaration (le fisc retire d\'abord 50 % de ton CA).</div>';
+
+  h+='<button class="exp" data-act="cedit">✏️ '+(S.cEdit?'Fermer':'Modifier les taux')+'</button>';
+  if(isCustom())h+='<div class="note warn">⚠️ Taux personnalisés : ce ne sont plus les taux officiels 2026.</div>';
+  if(S.cEdit){
+    h+='<div class="cbox" style="margin-top:10px">'+
+      rin("rt-rate","Cotisations sociales","%",R.rate)+rin("rt-cfp","Formation pro (CFP)","%",R.cfp)+rin("rt-vl","Versement libératoire","%",R.vl)+rin("rt-pl","Plafond annuel","€",R.plafond)+
+      '<button class="add" data-act="csave" style="margin:12px 0 8px">Enregistrer les taux</button>'+
+      '<button class="exp" data-act="creset" style="margin:0 0 12px">↩️ Remettre les taux 2026</button></div>';
+  }
+
+  h+='<h3>🎁 ACRE</h3>'+
+    opt("acre",0,cfg.acre===0,"Pas d'ACRE","Taux normal : "+pct(R.rate))+
+    opt("acre",1,cfg.acre===1,"ACRE · création avant le 1er juillet 2026","Taux réduit : "+pct(R.rate*0.5))+
+    opt("acre",2,cfg.acre===2,"ACRE · création à partir du 1er juillet 2026","Taux réduit : "+pct(R.rate*0.75))+
+    '<div class="note">À choisir seulement si l\'URSSAF t\'a accordé l\'ACRE. Elle dure jusqu\'à la fin du 3e trimestre civil qui suit celui de ta création.</div>';
+
+  h+='<h3>🧾 Impôt sur le revenu</h3>'+
+    opt("vl","0",!cfg.vl,"Non, je le paie plus tard","Avec ma déclaration de revenus")+
+    opt("vl","1",cfg.vl,"Oui, versement libératoire","+ "+pct(R.vl)+" du CA, réglé en même temps que les cotisations")+
+    '<div class="note">Possible seulement si ton revenu fiscal de référence d\'il y a 2 ans ne dépasse pas environ 29 315 € par part (voir ton avis d\'imposition).</div>';
+
+  h+='<h3>📏 Plafond micro-entreprise</h3><div class="cbox" style="padding:12px 14px"><div class="crow" style="border:0;padding:0"><span>CA de '+S.cY+'</span><b>'+eur2(yr)+' / '+eur(R.plafond)+'</b></div>'+
+    '<div class="gauge"><i style="width:'+yp.toFixed(1)+'%;background:'+(yp>=100?'var(--danger)':yp>=80?'var(--orange)':'var(--green)')+'"></i></div>'+
+    '<div class="note" style="margin:4px 0 0">'+pct(yp)+' du plafond pour les prestations de services. Au-delà, tu risques de sortir du régime micro-entreprise.</div></div>';
+
+  h+='<h3>ℹ️ Infos</h3><details data-wk="cotis-info"'+(S.open["cotis-info"]?' open':'')+'><summary><div class="l"><b>Comment c\'est calculé ?</b></div></summary><div class="cnote">'+
+    '<p><b>Cotisations = chiffre d\'affaires × taux.</b> Aucune charge n\'est déduite : tu paies sur ce que tu encaisses.</p>'+
+    '<p>Taux officiels 2026 pour une prestation de services artisanale (BIC) : 21,2 % de cotisations + 0,3 % de formation professionnelle (0,1 % si tu n\'es pas inscrit à la Chambre des métiers). Tu peux les changer avec le bouton ✏️.</p>'+
+    '<p>Les 21,2 % couvrent la maladie, la retraite, les allocations familiales, l\'invalidité-décès et la CSG-CRDS.</p>'+
+    '<p><b>Attention :</b> l\'URSSAF compte ce que tu <b>encaisses</b> (date du paiement), pas la date de l\'intervention. Ici, tout est compté à la date de l\'intervention : si une facture est payée le mois suivant, décale-la dans ta tête.</p>'+
+    '<p>Tu dois déclarer ton CA sur autoentrepreneur.urssaf.fr à chaque échéance (mensuelle ou trimestrielle), même s\'il est à 0 €.</p>'+
+    '<p>Ce calcul est une estimation, pas un conseil comptable. Pour un montant exact, vérifie sur autoentrepreneur.urssaf.fr ou avec un comptable.</p>'+
+  '</div></details>';
+  return h;
+}
+
+function expHTML(x){
+  var k=FM[x.k];
+  return '<div class="item'+(x.id===S.fNew?' new':'')+'" style="--c:'+k.c+'"><div class="n">'+k.e+' '+k.name+'<div class="t">'+lbl(x.d,{weekday:"short",day:"numeric",month:"short"})+'</div></div><div class="p">'+(k.inc?'+ ':'− ')+eur2(x.a)+'</div>'+
+    '<button class="del'+(S.fDel===x.id?' arm':'')+'" data-act="fdel" data-id="'+x.id+'" aria-label="Supprimer">'+(S.fDel===x.id?'Supprimer ?':'✕')+'</button></div>';
+}
+function viewFrais(){
+  var r=mRange(S.fY,S.fM),l=expIn(r.from,r.to).sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:b.id-a.id});
+  var ca=sum(items.filter(function(i){return i.d>=r.from&&i.d<=r.to})),gas=sumA(expIn(r.from,r.to,"gasoil")),rep=sumA(expIn(r.from,r.to,"repas")),tip=sumA(expIn(r.from,r.to,"pourboire"));
+  var c=calc(r2(ca+(cfg.tips?tip:0))),reste=r2(ca+tip-c.tot-gas-rep);
+  setBanner("Reste réel · "+r.label,Math.round(reste),l.length+" note"+(l.length>1?"s":""));
+  var isT=S.fDate===today(),ok=!!S.fType&&!isNaN(amt(S.fNum));
+  var h='<div class="field"><input type="date" id="fdt" value="'+S.fDate+'" aria-label="Date">'+(isT?'':'<button class="ghost" data-act="fnow">Aujourd\'hui</button>')+'</div>'+
+    '<div class="types t3">'+FK.map(function(k){
+      return '<button class="type" style="--c:'+k.c+'" data-act="ftype" data-id="'+k.id+'" aria-pressed="'+(S.fType===k.id)+'"><b>'+k.e+' '+k.name+'</b><span>'+k.sub+'</span></button>';
+    }).join("")+'</div>'+
+    '<div class="field"><input type="text" id="fnum" inputmode="decimal" value="'+esc(S.fNum)+'" placeholder="Montant en €" autocomplete="off" enterkeyhint="done"></div>'+
+    '<button class="add" id="fadd" data-act="fadd"'+(ok?'':' disabled')+'>Ajouter</button>';
+  h+='<h3>📊 Bilan du mois</h3><div class="nav"><button data-act="fprev" aria-label="Mois précédent">‹</button><b>'+r.label+'</b><button data-act="fnext" aria-label="Mois suivant">›</button></div>'+
+    '<div class="cbox">'+
+      '<div class="crow"><span>🛠️ Interventions</span><b>'+eur2(ca)+'</b></div>'+
+      '<div class="crow sub"><span>💶 Pourboires reçus</span><b>+ '+eur2(tip)+'</b></div>'+
+      '<div class="crow sub"><span>🏛️ Cotisations estimées</span><b>− '+eur2(c.tot)+'</b></div>'+
+      '<div class="crow sub"><span>⛽ Gasoil</span><b>− '+eur2(gas)+'</b></div>'+
+      '<div class="crow sub"><span>🍽️ Repas</span><b>− '+eur2(rep)+'</b></div>'+
+      '<div class="crow net"><span>✅ Reste réel</span><b>'+eur2(reste)+'</b></div>'+
+    '</div>'+
+    '<div class="note">💡 Les frais ne baissent pas tes cotisations : en micro-entreprise, elles se calculent sur le CA, sans déduire les dépenses. Ici, ils servent à voir ce qu\'il te reste vraiment. Les cotisations suivent tes réglages de l\'onglet Cotisations.</div>';
+  h+='<h3>🧾 Notes du mois</h3>'+(l.length?'<div class="list">'+l.map(expHTML).join("")+'</div>':'<div class="empty">Aucune note ce mois-ci.</div>');
+  h+='<h3>💶 Pourboires et cotisations</h3>'+
+    opt("tips","1",cfg.tips,"Les compter dans le CA","Cotisations calculées aussi sur les pourboires (prudent)")+
+    opt("tips","0",!cfg.tips,"Ne pas les compter","Les pourboires restent hors du calcul des cotisations")+
+    '<div class="note">En principe, les pourboires reçus pour ton activité font partie du CA à déclarer. À vérifier avec l\'URSSAF ou un comptable.</div>';
+  return h;
+}
+function doAddF(){
+  var a=amt(S.fNum);if(!S.fType||isNaN(a))return;
+  var id=Date.now();
+  exps.push({id:id,k:S.fType,d:S.fDate,a:r2(a)});
+  saveF();buzz();S.fNew=id;S.fNum="";S.fDel=null;
+  S.fY=+S.fDate.slice(0,4);S.fM=+S.fDate.slice(5,7)-1;
+  render();bump();toast("✓ Enregistré");
+  var inp=document.getElementById("fnum");if(inp)inp.focus();
 }
 
 function render(){
   document.querySelectorAll(".tab").forEach(function(b){b.setAttribute("aria-selected",b.dataset.tab===S.tab)});
   var main=document.getElementById("main");
   main.classList.remove("anim");
-  main.innerHTML=S.tab==="jour"?viewJour():S.tab==="semaine"?viewSemaine():viewMois();
+  main.innerHTML=S.tab==="jour"?viewJour():S.tab==="semaine"?viewSemaine():S.tab==="cotis"?viewCotis():S.tab==="frais"?viewFrais():viewMois();
   if(S.anim){void main.offsetWidth;main.classList.add("anim");S.anim=false}
-  S.newId=null;
+  S.newId=null;S.fNew=null;
 }
 var toastT;
 function toast(msg,bad){
@@ -247,22 +554,25 @@ function bump(){
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}}
 
 document.querySelector(".tabs").addEventListener("click",function(e){
-  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.anim=true;render();
+  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.fDel=null;S.anim=true;render();
 });
 var main=document.getElementById("main");
 main.addEventListener("input",function(e){
+  if(e.target.id==="fnum"){S.fNum=e.target.value;var fa=document.getElementById("fadd");if(fa)fa.disabled=!(S.fType&&!isNaN(amt(S.fNum)))}
   if(e.target.id==="num"){
     S.num=e.target.value;S.msg="";
     var a=document.getElementById("add");if(a)a.disabled=!(S.type&&S.num.trim());
   }
 });
 main.addEventListener("change",function(e){
+  if(e.target.id==="fdt"&&e.target.value){S.fDate=e.target.value;S.fDel=null;render()}
   if(e.target.id==="dt"&&e.target.value){S.date=e.target.value;S.msg="";S.del=null;render()}
 });
 main.addEventListener("toggle",function(e){
   var w=e.target.dataset&&e.target.dataset.wk;if(w)S.open[w]=e.target.open;
 },true);
 main.addEventListener("keydown",function(e){
+  if(e.target.id==="fnum"&&e.key==="Enter"){e.preventDefault();doAddF()}
   if(e.target.id==="num"&&e.key==="Enter"){e.preventDefault();doAdd()}
 });
 main.addEventListener("click",function(e){
@@ -282,6 +592,36 @@ main.addEventListener("click",function(e){
       },row?220:0);
     }else{S.del=id;render()}
   }
+  else if(a==="cper"){S.cP=b.dataset.p;render()}
+  else if(a==="cprev"||a==="cnext"){
+    var dl=a==="cnext"?1:-1;
+    if(S.cP==="m")S.cM+=dl;else if(S.cP==="t")S.cM+=3*dl;else S.cY+=dl;
+    if(S.cM<0){S.cM+=12;S.cY--}else if(S.cM>11){S.cM-=12;S.cY++}
+    render();
+  }
+  else if(a==="cedit"){S.cEdit=!S.cEdit;render()}
+  else if(a==="csave"){saveRates()}
+  else if(a==="creset"){cfg.rates={rate:DEF.rate,cfp:DEF.cfp,vl:DEF.vl,plafond:DEF.plafond};saveCfg();S.cEdit=false;render();toast("↩️ Taux 2026 remis")}
+  else if(a==="tips"){cfg.tips=b.dataset.v==="1";saveCfg();render()}
+  else if(a==="ftype"){S.fType=b.dataset.id;render()}
+  else if(a==="fnow"){S.fDate=today();render()}
+  else if(a==="fadd"){doAddF()}
+  else if(a==="fprev"||a==="fnext"){
+    S.fM+=a==="fnext"?1:-1;
+    if(S.fM<0){S.fM=11;S.fY--}else if(S.fM>11){S.fM=0;S.fY++}
+    render();
+  }
+  else if(a==="fdel"){
+    var fid=+b.dataset.id;
+    if(S.fDel===fid){
+      var frow=b.closest(".item");
+      if(frow){if(frow.classList.contains("out"))return;frow.classList.add("out")}
+      setTimeout(function(){exps=exps.filter(function(x){return x.id!==fid});S.fDel=null;saveF();buzz();render();bump();toast("Supprimé",true)},frow?220:0);
+    }else{S.fDel=fid;render()}
+  }
+  else if(a==="acre"){cfg.acre=+b.dataset.v;saveCfg();render()}
+  else if(a==="vl"){cfg.vl=b.dataset.v==="1";saveCfg();render()}
+  else if(a==="export"){exportPDF()}
   else if(a==="goday"){S.date=b.dataset.d;S.tab="jour";S.msg="";S.del=null;S.anim=true;render();window.scrollTo(0,0)}
   else if(a==="prev"||a==="next"){
     S.mM+=a==="next"?1:-1;
