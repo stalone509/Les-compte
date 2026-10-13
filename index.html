@@ -95,6 +95,46 @@ details .list{padding-bottom:12px}
 .exp{display:block;width:100%;margin-top:16px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
 .exp:active{transform:scale(.97)}
 
+/* fin de mission / mode veille */
+.fin{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:9px 14px;border-radius:12px;border:0;background:linear-gradient(90deg,#141a3a,#2a2f6e 60%,#3b2b72);color:#fff;font-size:16px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:transform .08s ease}
+.fin:active{transform:scale(.97)}
+.fin .mn{display:inline-block;animation:sway 3.2s ease-in-out infinite}
+.veille{position:fixed;inset:0;z-index:30;display:flex;overflow:hidden;color:#fff;cursor:pointer;opacity:0;transition:opacity .4s ease;
+  background:radial-gradient(ellipse at 50% 115%,#5a2f86 0%,rgba(90,47,134,0) 62%),linear-gradient(#050816,#0d1236 55%,#1a1a4a);
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.veille[hidden]{display:none}
+.veille.show{opacity:1}
+.veille .aur{position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(70px);opacity:.28;pointer-events:none}
+.veille .a1{left:-30vmax;top:-20vmax;background:#3f51ff;animation:drift1 16s ease-in-out infinite alternate}
+.veille .a2{right:-35vmax;bottom:-25vmax;background:#c23fff;animation:drift2 19s ease-in-out infinite alternate}
+.veille .stars{position:absolute;inset:0;pointer-events:none}
+.veille .st{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(255,255,255,.7);animation:twinkle 3s ease-in-out infinite}
+.veille .shoot{position:absolute;top:14%;right:10%;width:110px;height:2px;border-radius:2px;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));opacity:0;animation:shoot 7s ease-in infinite 2.5s;pointer-events:none}
+.veille .fl{position:absolute;bottom:-50px;font-size:26px;opacity:0;animation:flup 10s linear infinite;pointer-events:none}
+.veille .vbox{position:relative;margin:auto;padding:24px 22px;text-align:center;width:100%}
+.veille .moon{position:relative;display:inline-block;font-size:92px;line-height:1;margin-bottom:14px;filter:drop-shadow(0 0 28px rgba(255,226,140,.65));animation:bob 4.5s ease-in-out infinite}
+.veille .zz{position:absolute;left:78%;top:8%;font-size:26px;opacity:0;animation:zz 3.6s ease-out infinite}
+.veille .z2{animation-delay:1.2s}
+.veille .z3{animation-delay:2.4s}
+.veille .vmsg{margin:0 0 20px;font-size:clamp(30px,9.5vw,46px);font-weight:800;line-height:1.12;letter-spacing:.5px;text-shadow:0 2px 18px rgba(120,130,255,.45)}
+.veille .vl{display:block;margin-bottom:6px}
+.veille .w{display:inline-block;animation:wpop .7s cubic-bezier(.2,1.5,.4,1) both;animation-delay:calc(var(--i) * .13s + .25s)}
+.veille .hl{background:linear-gradient(90deg,#ffd36b,#ff8fb1,#8fd3ff,#ffd36b);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:wpop .7s cubic-bezier(.2,1.5,.4,1) both,shine 3.2s linear infinite;animation-delay:calc(var(--i) * .13s + .25s),0s}
+.veille .vrec{display:inline-block;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:19px;font-weight:600;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:wpop .7s ease both;animation-delay:1.9s}
+.veille .vhint{margin-top:26px;font-size:16px;color:rgba(255,255,255,.75);animation:hint 2.4s ease-in-out infinite}
+body.noscroll{overflow:hidden}
+@keyframes sway{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes twinkle{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.3)}}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-14px) rotate(6deg)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(36px,-80px) scale(1.25)}}
+@keyframes wpop{from{opacity:0;transform:translateY(24px) scale(.6)}}
+@keyframes shine{to{background-position:200% center}}
+@keyframes flup{0%{transform:translateY(0) rotate(0deg);opacity:0}12%{opacity:.85}100%{transform:translateY(-110vh) rotate(28deg);opacity:0}}
+@keyframes drift1{to{transform:translate(18vmax,14vmax)}}
+@keyframes drift2{to{transform:translate(-16vmax,-12vmax)}}
+@keyframes shoot{0%{transform:translate(0,0) rotate(-32deg);opacity:0}4%{opacity:1}28%{transform:translate(-280px,175px) rotate(-32deg);opacity:0}100%{opacity:0}}
+@keyframes hint{0%,100%{opacity:.4}50%{opacity:1}}
+
 /* modifier une intervention */
 .editbox{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:12px;margin:0 0 4px}
 .elabel{font-size:17px;font-weight:700;margin-bottom:10px}
@@ -177,6 +217,7 @@ main.anim{animation:viewIn .22s ease-out}
   <main id="main"></main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="veille" id="veille" hidden role="dialog" aria-modal="true" aria-label="Fin de mission"></div>
 <script>
 var TYPES=[
   {id:"aerien",e:"🪜",name:"Aérien",price:110,c:"var(--blue)"},
@@ -260,6 +301,7 @@ function viewJour(){
     return '<button class="type" style="--c:'+t.c+'" data-act="type" data-id="'+t.id+'" aria-pressed="'+(S.type===t.id)+'"><b>'+(t.e?t.e+' ':'')+t.name+'</b><span>'+t.price+' €</span></button>';
   }).join("");
   return '<div class="field"><input type="date" id="dt" value="'+S.date+'" aria-label="Date">'+(isToday?'':'<button class="ghost" data-act="now">Aujourd\'hui</button>')+'</div>'+
+    '<button class="fin" data-act="veille"><span class="mn">🌙</span> Fin de mission</button>'+
     '<div class="types">'+types+'</div>'+
     '<div class="field"><input type="text" id="num" value="'+esc(S.num)+'" placeholder="N° d\'intervention" autocomplete="off" enterkeyhint="done"></div>'+
     '<button class="add" id="add" data-act="add"'+(S.type&&S.num.trim()?'':' disabled')+'>Ajouter</button>'+
@@ -389,6 +431,36 @@ function restoreFile(f){
   };
   rd.readAsText(f);
 }
+
+function openVeille(){
+  var v=document.getElementById("veille"),td=today(),l=items.filter(function(i){return i.d===td}),tot=sum(l),stars="",k;
+  for(k=0;k<46;k++){
+    var sz=(1+Math.random()*2.6).toFixed(1);
+    stars+='<i class="st" style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*78).toFixed(1)+'%;width:'+sz+'px;height:'+sz+'px;animation-delay:'+(Math.random()*4).toFixed(2)+'s;animation-duration:'+(2+Math.random()*3).toFixed(2)+'s"></i>';
+  }
+  var fl=["🔌","🪜","⭐","🛠️","💤","✨","😴","🌟"].map(function(e,j){
+    return '<span class="fl" style="left:'+(5+j*12)+'%;animation-delay:'+(j*1.1).toFixed(1)+'s;animation-duration:'+(9+(j%3)*2)+'s">'+e+'</span>';
+  }).join("");
+  function w(i,t,c){return '<span class="w'+(c?' '+c:'')+'" style="--i:'+i+'">'+t+'</span>'}
+  v.innerHTML='<div class="aur a1"></div><div class="aur a2"></div><div class="stars">'+stars+'</div><i class="shoot"></i>'+fl+
+    '<div class="vbox"><div class="moon">🌙<span class="zz z1">💤</span><span class="zz z2">💤</span><span class="zz z3">💤</span></div>'+
+    '<h2 class="vmsg">'+
+      '<span class="vl">'+w(0,"OK")+' '+w(1,"STALONE","hl")+' '+w(2,"💪")+'</span>'+
+      '<span class="vl">'+w(3,"ON")+' '+w(4,"REPREND")+' '+w(5,"LE")+' '+w(6,"BARA")+'</span>'+
+      '<span class="vl">'+w(7,"DEMAIN")+' '+w(8,"🌅")+'</span>'+
+    '</h2>'+
+    '<div class="vrec">'+(l.length?'🛠️ '+plural(l.length)+' · 💶 '+eur2(tot):'😎 Journée tranquille : aucune intervention')+'</div>'+
+    '<div class="vhint">👆 Touche l\'écran pour te réveiller</div></div>';
+  v.hidden=false;void v.offsetWidth;v.classList.add("show");
+  document.body.classList.add("noscroll");buzz();
+}
+function closeVeille(){
+  var v=document.getElementById("veille");if(v.hidden)return;
+  v.classList.remove("show");
+  setTimeout(function(){v.hidden=true;v.innerHTML="";document.body.classList.remove("noscroll")},400);
+}
+document.getElementById("veille").addEventListener("click",closeVeille);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeVeille()});
 
 function exportPDF(){
   var Y=S.mY,Mo=S.mM,pre=Y+"-"+pad(Mo+1)+"-",first=pre+"01",lastKey=pre+pad(new Date(Y,Mo+1,0).getDate());
@@ -759,6 +831,7 @@ main.addEventListener("click",function(e){
   }
   else if(a==="acre"){cfg.acre=+b.dataset.v;saveCfg();render()}
   else if(a==="vl"){cfg.vl=b.dataset.v==="1";saveCfg();render()}
+  else if(a==="veille"){openVeille()}
   else if(a==="export"){exportPDF()}
   else if(a==="backup"){backup()}
   else if(a==="restore"){var rin2=document.getElementById("rfile");if(rin2)rin2.click()}
