@@ -95,6 +95,12 @@ details .list{padding-bottom:12px}
 .exp{display:block;width:100%;margin-top:16px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
 .exp:active{transform:scale(.97)}
 
+/* récap par type */
+.recap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.chip{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:12px;padding:8px 10px 9px;min-width:0}
+.chip b{display:block;font-size:34px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.chip span{display:block;margin-top:4px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.2;overflow-wrap:anywhere}
+
 /* onglet cotisations */
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
 .seg button{padding:10px 4px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:17px;font-weight:600;cursor:pointer;transition:transform .08s ease}
@@ -207,6 +213,14 @@ function setBanner(label,total,meta){
   document.getElementById("tm").textContent=meta;
 }
 
+function recapHTML(l){
+  if(!l.length)return "";
+  var c={};l.forEach(function(i){c[i.t]=(c[i.t]||0)+1});
+  var rows=TYPES.filter(function(t){return c[t.id]}).sort(function(a,b){return c[b.id]-c[a.id]});
+  return '<div class="recap">'+rows.map(function(t){
+    return '<div class="chip" style="--c:'+t.c+'" role="text" aria-label="'+c[t.id]+' '+t.name+'"><b>'+c[t.id]+'</b><span>'+(t.e?t.e+' ':'')+t.name+'</span></div>';
+  }).join("")+'</div>';
+}
 function viewJour(){
   var l=items.filter(function(i){return i.d===S.date});
   var isToday=S.date===today();
@@ -219,17 +233,17 @@ function viewJour(){
     '<div class="field"><input type="text" id="num" value="'+esc(S.num)+'" placeholder="N° d\'intervention" autocomplete="off" enterkeyhint="done"></div>'+
     '<button class="add" id="add" data-act="add"'+(S.type&&S.num.trim()?'':' disabled')+'>Ajouter</button>'+
     (S.msg?'<div class="note'+(S.warn?' warn':'')+'">'+esc(S.msg)+'</div>':'')+
-    '<h3>Interventions du jour</h3>'+listHTML(l,true);
+    '<h3>Interventions du jour</h3>'+recapHTML(l)+listHTML(l,true);
 }
 
 function viewSemaine(){
-  var mon=mondayKey(today()),days=[],total=0,count=0;
+  var mon=mondayKey(today()),days=[],total=0,count=0,all=[];
   for(var k=0;k<7;k++){
     var d=addDays(mon,k),l=items.filter(function(i){return i.d===d});
-    total+=sum(l);count+=l.length;days.push({d:d,l:l});
+    total+=sum(l);count+=l.length;all=all.concat(l);days.push({d:d,l:l});
   }
   setBanner("Semaine du "+lbl(mon,{day:"numeric"})+" au "+lbl(addDays(mon,6),{day:"numeric",month:"long"}),total,plural(count));
-  return days.map(function(x){
+  return (all.length?'<h3 style="margin-top:6px">📊 Par type</h3>'+recapHTML(all):'')+days.map(function(x){
     var z=x.l.length?"":" zero";
     return '<div class="day"><div class="dayhead'+z+'"><b>'+lbl(x.d,{weekday:"long",day:"numeric"})+'</b><span>'+(x.l.length?eur(sum(x.l)):'—')+'</span></div>'+
       (x.l.length?'<div class="list">'+x.l.slice().reverse().map(function(i){return itemHTML(i,true)}).join("")+'</div>':'')+'</div>';
@@ -247,6 +261,7 @@ function viewMois(){
   var inM=items.filter(function(i){return i.d.indexOf(pre)===0});
   setBanner("Total "+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long"}),sum(inM),plural(inM.length));
   var html='<div class="nav"><button data-act="prev" aria-label="Mois précédent">‹</button><b>'+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+'</b><button data-act="next" aria-label="Mois suivant">›</button></div>';
+  if(inM.length)html+='<h3 style="margin-top:6px">📊 Par type</h3>'+recapHTML(inM);
   var off=(new Date(y,m,1).getDay()+6)%7,td=today();
   html+='<div class="cal">'+["L","M","M","J","V","S","D"].map(function(x){return '<div class="dow">'+x+'</div>'}).join("");
   for(var b=0;b<off;b++)html+='<div></div>';
