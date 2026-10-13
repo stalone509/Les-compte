@@ -95,6 +95,15 @@ details .list{padding-bottom:12px}
 .exp{display:block;width:100%;margin-top:16px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
 .exp:active{transform:scale(.97)}
 
+/* modifier une intervention */
+.editbox{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:12px;margin:0 0 4px}
+.elabel{font-size:17px;font-weight:700;margin-bottom:10px}
+.editbox .field{margin-bottom:10px}
+.erow{display:flex;gap:8px;align-items:stretch}
+.erow .add{flex:2;width:auto;padding:14px;font-size:19px}
+.erow .ghost{flex:1;padding:0 12px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:17px;font-weight:600;cursor:pointer}
+.del.on{border-color:var(--ink);background:color-mix(in srgb,var(--green) 16%,var(--bg))}
+
 /* récap par type */
 .recap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .chip{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:12px;padding:8px 10px 9px;min-width:0}
@@ -201,7 +210,29 @@ var S={tab:"jour",date:today(),type:null,num:"",msg:"",warn:false,del:null,newId
 function itemHTML(i,withDel){
   var t=TM[i.t]||{name:i.t,c:"var(--slate)"};
   return '<div class="item'+(i.id===S.newId?' new':'')+'" style="--c:'+t.c+'"><div class="n">'+esc(i.n)+'<div class="t">'+(t.e?t.e+' ':'')+t.name+'</div></div><div class="p">'+eur(i.p)+'</div>'+
-    (withDel?'<button class="del'+(S.del===i.id?' arm':'')+'" data-act="del" data-id="'+i.id+'" aria-label="Supprimer">'+(S.del===i.id?'Supprimer ?':'✕')+'</button>':'')+'</div>';
+    (withDel&&S.del!==i.id?'<button class="del'+(S.ed===i.id?' on':'')+'" data-act="edit" data-id="'+i.id+'" aria-label="Modifier">✏️</button>':'')+
+    (withDel?'<button class="del'+(S.del===i.id?' arm':'')+'" data-act="del" data-id="'+i.id+'" aria-label="Supprimer">'+(S.del===i.id?'Supprimer ?':'✕')+'</button>':'')+'</div>'+
+    (withDel&&S.ed===i.id?editBox():'');
+}
+function editBox(){
+  return '<div class="editbox"><div class="elabel">✏️ Modifier l\'intervention</div>'+
+    '<div class="field"><input type="text" id="enum" value="'+esc(S.edN)+'" placeholder="N° d\'intervention" autocomplete="off" enterkeyhint="done"></div>'+
+    '<div class="types">'+TYPES.map(function(t){
+      return '<button class="type" style="--c:'+t.c+'" data-act="etype" data-id="'+t.id+'" aria-pressed="'+(S.edT===t.id)+'"><b>'+(t.e?t.e+' ':'')+t.name+'</b><span>'+t.price+' €</span></button>';
+    }).join("")+'</div>'+
+    '<div class="erow"><button class="add" data-act="esave">Enregistrer</button><button class="ghost" data-act="ecancel">Annuler</button></div></div>';
+}
+function saveEdit(){
+  var n=(S.edN||"").trim();
+  if(!n){toast("Mets un N°",true);return}
+  if(n.length>60){toast("N° trop long",true);return}
+  var it=items.filter(function(i){return i.id===S.ed})[0];
+  if(!it||!TM[S.edT]){S.ed=null;render();return}
+  var dup=items.some(function(i){return i.id!==it.id&&i.n.toLowerCase()===n.toLowerCase()});
+  if(S.edT!==it.t)it.p=TM[S.edT].price;
+  it.n=n;it.t=S.edT;
+  save();buzz();S.ed=null;render();bump();
+  toast(dup?"✓ Modifié (N° déjà saisi ailleurs)":"✓ Modifié");
 }
 function listHTML(l,withDel){
   if(!l.length)return '<div class="empty">Rien de saisi.</div>';
@@ -497,7 +528,7 @@ function sumA(l){return r2(l.reduce(function(a,x){return a+x.a},0))}
 function expIn(from,to,k){return exps.filter(function(x){return x.d>=from&&x.d<=to&&(!k||x.k===k)})}
 var AMT=/^\d{1,6}([.,]\d{1,2})?$/;
 function amt(s){s=String(s).trim();return AMT.test(s)?parseFloat(s.replace(",",".")):NaN}
-S.fDate=today();S.fType=null;S.fNum="";S.fY=S.cY;S.fM=S.cM;S.fNew=null;S.fDel=null;S.cEdit=false;
+S.ed=null;S.edT=null;S.edN="";S.fDate=today();S.fType=null;S.fNum="";S.fY=S.cY;S.fM=S.cM;S.fNew=null;S.fDel=null;S.cEdit=false;
 
 function mRange(y,m){var mm=pad(m+1);return {from:y+"-"+mm+"-01",to:y+"-"+mm+"-"+pad(new Date(y,m+1,0).getDate()),label:new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}}
 function cRange(){
@@ -649,10 +680,11 @@ function bump(){
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}}
 
 document.querySelector(".tabs").addEventListener("click",function(e){
-  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.fDel=null;S.anim=true;render();
+  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.fDel=null;S.ed=null;S.anim=true;render();
 });
 var main=document.getElementById("main");
 main.addEventListener("input",function(e){
+  if(e.target.id==="enum"){S.edN=e.target.value}
   if(e.target.id==="fnum"){S.fNum=e.target.value;var fa=document.getElementById("fadd");if(fa)fa.disabled=!(S.fType&&!isNaN(amt(S.fNum)))}
   if(e.target.id==="num"){
     S.num=e.target.value;S.msg="";
@@ -668,6 +700,7 @@ main.addEventListener("toggle",function(e){
   var w=e.target.dataset&&e.target.dataset.wk;if(w)S.open[w]=e.target.open;
 },true);
 main.addEventListener("keydown",function(e){
+  if(e.target.id==="enum"&&e.key==="Enter"){e.preventDefault();saveEdit()}
   if(e.target.id==="fnum"&&e.key==="Enter"){e.preventDefault();doAddF()}
   if(e.target.id==="num"&&e.key==="Enter"){e.preventDefault();doAdd()}
 });
@@ -686,7 +719,7 @@ main.addEventListener("click",function(e){
         items=items.filter(function(i){return i.id!==id});
         S.del=null;save();buzz();render();bump();toast("Supprimé",true);
       },row?220:0);
-    }else{S.del=id;render()}
+    }else{S.del=id;S.ed=null;render()}
   }
   else if(a==="cper"){S.cP=b.dataset.p;render()}
   else if(a==="cprev"||a==="cnext"){
@@ -695,6 +728,15 @@ main.addEventListener("click",function(e){
     if(S.cM<0){S.cM+=12;S.cY--}else if(S.cM>11){S.cM-=12;S.cY++}
     render();
   }
+  else if(a==="edit"){
+    var eid=+b.dataset.id;
+    if(S.ed===eid){S.ed=null}
+    else{var eit=items.filter(function(i){return i.id===eid})[0];if(eit){S.ed=eid;S.edT=eit.t;S.edN=eit.n;S.del=null}}
+    render();
+  }
+  else if(a==="etype"){S.edT=b.dataset.id;render()}
+  else if(a==="ecancel"){S.ed=null;render()}
+  else if(a==="esave"){saveEdit()}
   else if(a==="cedit"){S.cEdit=!S.cEdit;render()}
   else if(a==="csave"){saveRates()}
   else if(a==="creset"){cfg.rates={rate:DEF.rate,cfp:DEF.cfp,vl:DEF.vl,plafond:DEF.plafond};saveCfg();S.cEdit=false;render();toast("↩️ Taux 2026 remis")}
