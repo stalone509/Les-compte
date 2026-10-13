@@ -261,7 +261,87 @@ function viewMois(){
       (l.length?'<div class="list">'+l.slice().reverse().map(function(i){return itemHTML(i,false).replace('class="n">','class="n">'+lbl(i.d,{day:"numeric",month:"short"})+' · ')}).join("")+'</div>':'')+'</details>';
   });
   html+='<button class="exp" data-act="export">📄 Exporter '+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+' en PDF</button><div class="note">Relevé du mois affiché : récapitulatif par type, détail jour par jour et total par semaine.</div>';
+  html+='<h3>💾 Sauvegarde</h3><div class="cbox" style="padding:12px 14px"><div class="note" style="margin:0">Tes données sont enregistrées dans ce téléphone. Fais une sauvegarde de temps en temps, et surtout avant de changer d\'icône ou de téléphone.</div>'+
+    '<button class="exp" data-act="backup" style="margin-top:12px">⬆️ Sauvegarder mes données</button>'+
+    '<button class="exp" data-act="restore" style="margin-top:10px">⬇️ Restaurer une sauvegarde</button>'+
+    '<input type="file" id="rfile" accept=".json,application/json,text/plain" hidden></div>';
+  html+='<h3>📶 Hors-ligne</h3><div class="cbox" id="off" style="padding:12px 14px">'+offHTML()+'</div>';
   return html;
+}
+
+var OFF={s:"wait",t:"Vérification en cours…"};
+function offHTML(){
+  var ic=OFF.s==="ok"?"✅ Prêt":OFF.s==="ko"?"❌ Pas disponible":"⏳ En cours";
+  return '<div class="crow" style="border:0;padding:0;font-weight:700"><span>'+ic+'</span></div><div class="note" style="margin:4px 0 0">'+esc(OFF.t)+'</div>'+
+    '<button class="exp" data-act="offcheck" style="margin-top:12px">🔄 Revérifier</button>';
+}
+function offSet(st,t){OFF.s=st;OFF.t=t;var el=document.getElementById("off");if(el)el.innerHTML=offHTML()}
+function offCheck(){
+  if(!("serviceWorker" in navigator)||!(location.protocol==="https:"||location.protocol==="http:")){
+    offSet("ko","Indisponible dans ce navigateur ou dans cet aperçu. Ouvre l'app depuis son adresse, avec Safari.");
+    return Promise.resolve();
+  }
+  return navigator.serviceWorker.register("sw.js").then(function(reg){
+    return navigator.serviceWorker.ready.then(function(){return reg});
+  }).then(function(reg){
+    var ctl=!!navigator.serviceWorker.controller;
+    return caches.open("ma-journee-fibre-v1").then(function(c){return c.match(new URL("index.html",reg.scope).href)}).then(function(hit){
+      if(hit&&ctl){
+        offSet("ok","L'app s'ouvre sans réseau.");
+        try{if(!localStorage.getItem("mjf-offline")){localStorage.setItem("mjf-offline","1");toast("📶 Mode hors-ligne prêt")}}catch(e){}
+      }else if(hit){offSet("wait","Presque : ferme complètement l'app, puis rouvre-la avec du réseau.")}
+      else{offSet("wait","Pas encore en mémoire : reste connecté, ferme l'app puis rouvre-la.")}
+    });
+  }).catch(function(err){
+    offSet("ko","Installation impossible : le fichier sw.js est introuvable ou refusé ("+((err&&err.name)||"erreur")+"). Vérifie qu'il est à côté de index.html sur GitHub.");
+  });
+}
+
+function shareOrDownload(txt,name,types,okMsg){
+  var file=null;
+  for(var k=0;k<types.length&&!file;k++){
+    try{var f=new File([txt],name,{type:types[k]});if(navigator.canShare&&navigator.canShare({files:[f]}))file=f}catch(e){}
+  }
+  if(file){navigator.share({files:[file],title:name}).then(function(){toast(okMsg)}).catch(function(){});return}
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt],{type:types[0]}));a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000);
+  toast(okMsg);
+}
+function backup(){
+  var data={app:"ma-journee-fibre",v:1,date:new Date().toISOString(),items:items,exps:exps,cfg:cfg};
+  shareOrDownload(JSON.stringify(data,null,1),"sauvegarde-fibre-"+today()+".json",["application/json","text/plain"],"✓ Sauvegarde prête");
+}
+function restoreFile(f){
+  var rd=new FileReader();
+  rd.onerror=function(){toast("Lecture impossible",true)};
+  rd.onload=function(){
+    var d;try{d=JSON.parse(rd.result)}catch(e){toast("Fichier invalide",true);return}
+    if(!d||d.app!=="ma-journee-fibre"){toast("Ce n'est pas une sauvegarde de l'app",true);return}
+    var DT=/^\d{4}-\d{2}-\d{2}$/,num=function(v){return typeof v==="number"&&isFinite(v)};
+    var ids={},eids={},addI=0,addE=0;
+    items.forEach(function(i){ids[i.id]=1});exps.forEach(function(x){eids[x.id]=1});
+    (Array.isArray(d.items)?d.items:[]).forEach(function(i){
+      if(i&&num(i.id)&&!ids[i.id]&&typeof i.n==="string"&&i.n.length<=60&&TM[i.t]&&typeof i.d==="string"&&DT.test(i.d)&&num(i.p)&&i.p>=0&&i.p<=100000){
+        items.push({id:i.id,n:i.n,t:i.t,d:i.d,p:i.p});ids[i.id]=1;addI++;
+      }
+    });
+    (Array.isArray(d.exps)?d.exps:[]).forEach(function(x){
+      if(x&&num(x.id)&&!eids[x.id]&&FM[x.k]&&num(x.a)&&x.a>=0&&x.a<=1000000&&typeof x.d==="string"&&DT.test(x.d)){
+        exps.push({id:x.id,k:x.k,d:x.d,a:x.a});eids[x.id]=1;addE++;
+      }
+    });
+    if(d.cfg&&typeof d.cfg==="object"){
+      var c=d.cfg;
+      if([0,1,2].indexOf(c.acre)>=0)cfg.acre=c.acre;
+      cfg.vl=!!c.vl;cfg.tips=c.tips!==false;
+      if(c.rates&&typeof c.rates==="object")["rate","cfp","vl","plafond"].forEach(function(k){var v=c.rates[k];if(num(v)&&v>=0&&v<=100000000)cfg.rates[k]=v});
+    }
+    save();saveF();saveCfg();render();
+    toast(addI||addE?"✓ Restauré : "+plural(addI)+" et "+addE+" note"+(addE>1?"s":""):"Déjà à jour : rien à ajouter");
+  };
+  rd.readAsText(f);
 }
 
 function exportPDF(){
@@ -565,6 +645,7 @@ main.addEventListener("input",function(e){
   }
 });
 main.addEventListener("change",function(e){
+  if(e.target.id==="rfile"&&e.target.files&&e.target.files[0]){var rfl=e.target.files[0];e.target.value="";restoreFile(rfl);return}
   if(e.target.id==="fdt"&&e.target.value){S.fDate=e.target.value;S.fDel=null;render()}
   if(e.target.id==="dt"&&e.target.value){S.date=e.target.value;S.msg="";S.del=null;render()}
 });
@@ -622,6 +703,9 @@ main.addEventListener("click",function(e){
   else if(a==="acre"){cfg.acre=+b.dataset.v;saveCfg();render()}
   else if(a==="vl"){cfg.vl=b.dataset.v==="1";saveCfg();render()}
   else if(a==="export"){exportPDF()}
+  else if(a==="backup"){backup()}
+  else if(a==="restore"){var rin2=document.getElementById("rfile");if(rin2)rin2.click()}
+  else if(a==="offcheck"){offSet("wait","Vérification en cours…");offCheck()}
   else if(a==="goday"){S.date=b.dataset.d;S.tab="jour";S.msg="";S.del=null;S.anim=true;render();window.scrollTo(0,0)}
   else if(a==="prev"||a==="next"){
     S.mM+=a==="next"?1:-1;
@@ -645,6 +729,9 @@ document.addEventListener("visibilitychange",function(){
   if(!document.hidden){if(S.tab==="jour"&&S.date<today()&&false){}render()}
 });
 render();
+
+/* mode hors-ligne (nécessite le fichier sw.js à côté de index.html) */
+window.addEventListener("load",function(){offCheck()});
 </script>
 </body>
 </html>
