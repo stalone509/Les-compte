@@ -95,6 +95,19 @@ details .list{padding-bottom:12px}
 .exp{display:block;width:100%;margin-top:16px;padding:15px;border-radius:14px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:18px;font-weight:600;cursor:pointer;transition:transform .08s ease}
 .exp:active{transform:scale(.97)}
 
+/* check doublons */
+.chkbtn{display:block;width:100%;margin:0 0 10px;padding:12px;border-radius:14px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:19px;font-weight:700;cursor:pointer;transition:transform .08s ease}
+.chkbtn:active{transform:scale(.97)}
+.chkbox{border-radius:12px;padding:10px 12px;margin:0 0 10px;border:2px solid var(--green);background:color-mix(in srgb,var(--green) 14%,var(--card));animation:slideIn .3s ease}
+.chkbox.bad{border-color:var(--orange);background:color-mix(in srgb,var(--orange) 14%,var(--card))}
+.chkbox .ct{font-size:18px;font-weight:700}
+.chkbox .ch{margin-top:10px;font-size:16px;font-weight:700;color:var(--muted)}
+.chkbox .cr{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:6px;font-size:16px}
+.chkbox .cr>span{flex:1 1 150px}
+.chkbox .ca{display:flex;gap:6px;flex:none}
+.chkbox .mini.arm{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:700}
+.chkbox .mini{flex:none;padding:6px 12px;border-radius:10px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer}
+
 /* fin de mission / mode veille */
 .fin{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 12px;padding:9px 14px;border-radius:12px;border:0;background:linear-gradient(90deg,#141a3a,#2a2f6e 60%,#3b2b72);color:#fff;font-size:16px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:transform .08s ease}
 .fin:active{transform:scale(.97)}
@@ -257,7 +270,7 @@ function itemHTML(i,withDel){
 }
 function editBox(){
   return '<div class="editbox"><div class="elabel">✏️ Modifier l\'intervention</div>'+
-    '<div class="field"><input type="text" id="enum" value="'+esc(S.edN)+'" placeholder="N° d\'intervention" autocomplete="off" enterkeyhint="done"></div>'+
+    '<div class="field"><input type="text" id="enum" inputmode="numeric" maxlength="9" value="'+esc(S.edN)+'" placeholder="N° d\'intervention (9 chiffres)" autocomplete="off" enterkeyhint="done"></div>'+
     '<div class="types">'+TYPES.map(function(t){
       return '<button class="type" style="--c:'+t.c+'" data-act="etype" data-id="'+t.id+'" aria-pressed="'+(S.edT===t.id)+'"><b>'+(t.e?t.e+' ':'')+t.name+'</b><span>'+t.price+' €</span></button>';
     }).join("")+'</div>'+
@@ -265,8 +278,7 @@ function editBox(){
 }
 function saveEdit(){
   var n=(S.edN||"").trim();
-  if(!n){toast("Mets un N°",true);return}
-  if(n.length>60){toast("N° trop long",true);return}
+  if(!isRef(n)){toast("Il faut 9 chiffres exactement",true);return}
   var it=items.filter(function(i){return i.id===S.ed})[0];
   if(!it||!TM[S.edT]){S.ed=null;render();return}
   var dup=items.some(function(i){return i.id!==it.id&&i.n.toLowerCase()===n.toLowerCase()});
@@ -285,6 +297,79 @@ function setBanner(label,total,meta){
   document.getElementById("tm").textContent=meta;
 }
 
+function chkHTML(){
+  var c=S.chk;
+  return '<div class="chkbox'+(c.ok?'':' bad')+'" id="chk" role="status"><div class="ct">'+(c.ok?'✅ ':'⚠️ ')+esc(c.title)+'</div>'+
+    c.rows.map(function(r){
+      return r.h?'<div class="ch">'+esc(r.h)+'</div>':'<div class="cr"><span>'+esc(r.txt)+'</span><span class="ca"><button class="mini" data-act="goday" data-d="'+r.d+'">Voir</button><button class="mini'+(S.chkDel===r.id?' arm':'')+'" data-act="chkdel" data-id="'+r.id+'" aria-label="Supprimer">'+(S.chkDel===r.id?'Supprimer ?':'🗑️')+'</button></span></div>';
+    }).join("")+'</div>';
+}
+function isRef(n){return /^\d{9}$/.test(String(n).trim())}
+function refMsg(n){
+  n=String(n).trim();
+  if(!/^\d+$/.test(n))return "Chiffres uniquement";
+  if(n.length<9)return "Encore "+(9-n.length)+" chiffre"+(9-n.length>1?"s":"")+" à saisir (9 au total)";
+  return "";
+}
+function badRef(n){
+  n=String(n).trim();
+  if(/^\d{9}$/.test(n))return "";
+  if(!/^\d+$/.test(n))return "pas que des chiffres";
+  return n.length+" chiffre"+(n.length>1?"s":"")+" au lieu de 9";
+}
+function chkRow(i,grp,withN,out){
+  var t=TM[i.t]||{name:i.t,e:""},same=grp&&grp.some(function(o){return o!==i&&o.d===i.d&&o.t===i.t});
+  return {id:i.id,d:i.d,txt:(withN?"N° "+String(i.n).trim()+" · ":"")+lbl(i.d,{day:"numeric",month:"short"})+" · "+(t.e?t.e+" ":"")+t.name+" · "+eur(i.p)+(same?" · 🔁 identique":"")+(out?" · autre mois":"")};
+}
+function chkLow(x){return String(x.n).trim().toLowerCase()}
+function scanScope(scope,label,isMonth){
+  S.chkDel=null;
+  var pre=label?label+" : ":"";
+  if(!scope.length){S.chk={ok:true,m:isMonth,title:label?pre+"aucune intervention":"Rien à vérifier pour l'instant",rows:[]};return}
+  var inS={};scope.forEach(function(i){inS[i.id]=1});
+  var invalid=scope.filter(function(i){return badRef(i.n)});
+  var g={};items.forEach(function(i){var k=chkLow(i);(g[k]=g[k]||[]).push(i)});
+  var seen={},dups=[];
+  scope.forEach(function(i){var k=chkLow(i);if(!seen[k]&&g[k].length>1){seen[k]=1;dups.push(k)}});
+  if(!invalid.length&&!dups.length){
+    S.chk={ok:true,m:isMonth,title:label?pre+"tout est bon ("+plural(scope.length)+(scope.length>1?" vérifiées":" vérifiée")+", 9 chiffres, aucun doublon)":"Tout est bon : "+plural(scope.length)+(scope.length>1?" vérifiées":" vérifiée")+" (9 chiffres, aucun doublon)",rows:[]};return;
+  }
+  var rows=[],parts=[];
+  if(invalid.length){
+    parts.push(invalid.length+" N° pas à 9 chiffres");
+    rows.push({h:"N° à corriger (9 chiffres exactement)"});
+    invalid.slice(0,15).forEach(function(i){var r=chkRow(i,null,true,false);r.txt+=" · "+badRef(i.n);rows.push(r)});
+    if(invalid.length>15)rows.push({h:"… et "+(invalid.length-15)+" autre"+(invalid.length-15>1?"s":"")});
+  }
+  if(dups.length){
+    parts.push(dups.length+" N° en double");
+    dups.slice(0,10).forEach(function(k){
+      var grp=g[k];rows.push({h:"Doublon : N° "+String(grp[0].n).trim()+" · "+grp.length+" fois"});
+      grp.forEach(function(i){rows.push(chkRow(i,grp,false,isMonth&&!inS[i.id]))});
+    });
+    if(dups.length>10)rows.push({h:"… et "+(dups.length-10)+" autre"+(dups.length-10>1?"s":"")});
+  }
+  S.chk={ok:false,m:isMonth,title:pre+parts.join(" · "),rows:rows};
+}
+function doCheckMonth(){
+  var pre=S.mY+"-"+pad(S.mM+1)+"-";
+  var lab=new Date(S.mY,S.mM,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+  scanScope(items.filter(function(i){return i.d.indexOf(pre)===0}),lab,true);
+}
+function doCheck(){
+  S.chkDel=null;
+  var n=(S.num||"").trim();
+  if(n){
+    var f=items.filter(function(i){return chkLow(i)===n.toLowerCase()}),bad=badRef(n);
+    var title="N° "+n+" : ";
+    if(bad)title+=bad+(f.length?", déjà saisi"+(f.length>1?" ("+f.length+" fois)":""):"");
+    else if(f.length)title+="déjà saisi"+(f.length>1?" ("+f.length+" fois)":"");
+    if(bad||f.length){S.chk={ok:false,title:title,rows:f.map(function(i){return chkRow(i,f,false,false)})};}
+    else S.chk={ok:true,title:"N° "+n+" : 9 chiffres, pas encore saisi, tu peux l'ajouter",rows:[]};
+    return;
+  }
+  scanScope(items,"",false);
+}
 function recapHTML(l){
   if(!l.length)return "";
   var c={};l.forEach(function(i){c[i.t]=(c[i.t]||0)+1});
@@ -303,8 +388,9 @@ function viewJour(){
   return '<div class="field"><input type="date" id="dt" value="'+S.date+'" aria-label="Date">'+(isToday?'':'<button class="ghost" data-act="now">Aujourd\'hui</button>')+'</div>'+
     '<button class="fin" data-act="veille"><span class="mn">🌙</span> Fin de mission</button>'+
     '<div class="types">'+types+'</div>'+
-    '<div class="field"><input type="text" id="num" value="'+esc(S.num)+'" placeholder="N° d\'intervention" autocomplete="off" enterkeyhint="done"></div>'+
-    '<button class="add" id="add" data-act="add"'+(S.type&&S.num.trim()?'':' disabled')+'>Ajouter</button>'+
+    '<div class="field"><input type="text" id="num" inputmode="numeric" maxlength="9" value="'+esc(S.num)+'" placeholder="N° d\'intervention (9 chiffres)" autocomplete="off" enterkeyhint="done"></div>'+
+    (S.num&&!isRef(S.num)?'<div class="note warn" id="refhelp">'+refMsg(S.num)+'</div>':'')+
+    '<button class="add" id="add" data-act="add"'+(S.type&&isRef(S.num)?'':' disabled')+'>Ajouter</button>'+
     (S.msg?'<div class="note'+(S.warn?' warn':'')+'">'+esc(S.msg)+'</div>':'')+
     '<h3>Interventions du jour</h3>'+recapHTML(l)+listHTML(l,true);
 }
@@ -334,6 +420,7 @@ function viewMois(){
   var inM=items.filter(function(i){return i.d.indexOf(pre)===0});
   setBanner("Total "+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long"}),sum(inM),plural(inM.length));
   var html='<div class="nav"><button data-act="prev" aria-label="Mois précédent">‹</button><b>'+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+'</b><button data-act="next" aria-label="Mois suivant">›</button></div>';
+  html+=(S.chk&&S.chk.m?chkHTML():'')+'<button class="chkbtn" data-act="checkm">🔍 Check du mois</button>';
   if(inM.length)html+='<h3 style="margin-top:6px">📊 Par type</h3>'+recapHTML(inM);
   var off=(new Date(y,m,1).getDay()+6)%7,td=today();
   html+='<div class="cal">'+["L","M","M","J","V","S","D"].map(function(x){return '<div class="dow">'+x+'</div>'}).join("");
@@ -600,7 +687,7 @@ function sumA(l){return r2(l.reduce(function(a,x){return a+x.a},0))}
 function expIn(from,to,k){return exps.filter(function(x){return x.d>=from&&x.d<=to&&(!k||x.k===k)})}
 var AMT=/^\d{1,6}([.,]\d{1,2})?$/;
 function amt(s){s=String(s).trim();return AMT.test(s)?parseFloat(s.replace(",",".")):NaN}
-S.ed=null;S.edT=null;S.edN="";S.fDate=today();S.fType=null;S.fNum="";S.fY=S.cY;S.fM=S.cM;S.fNew=null;S.fDel=null;S.cEdit=false;
+S.chk=null;S.ed=null;S.edT=null;S.edN="";S.fDate=today();S.fType=null;S.fNum="";S.fY=S.cY;S.fM=S.cM;S.fNew=null;S.fDel=null;S.cEdit=false;
 
 function mRange(y,m){var mm=pad(m+1);return {from:y+"-"+mm+"-01",to:y+"-"+mm+"-"+pad(new Date(y,m+1,0).getDate()),label:new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}}
 function cRange(){
@@ -752,15 +839,22 @@ function bump(){
 function buzz(){try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}}
 
 document.querySelector(".tabs").addEventListener("click",function(e){
-  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.fDel=null;S.ed=null;S.anim=true;render();
+  var b=e.target.closest(".tab");if(!b)return;S.tab=b.dataset.tab;S.del=null;S.fDel=null;S.ed=null;S.chk=null;S.anim=true;render();
 });
 var main=document.getElementById("main");
 main.addEventListener("input",function(e){
-  if(e.target.id==="enum"){S.edN=e.target.value}
+  if(e.target.id==="enum"){var ec=e.target.value.replace(/\D/g,"").slice(0,9);if(ec!==e.target.value)e.target.value=ec;S.edN=ec}
   if(e.target.id==="fnum"){S.fNum=e.target.value;var fa=document.getElementById("fadd");if(fa)fa.disabled=!(S.fType&&!isNaN(amt(S.fNum)))}
-  if(e.target.id==="num"){
-    S.num=e.target.value;S.msg="";
-    var a=document.getElementById("add");if(a)a.disabled=!(S.type&&S.num.trim());
+  if(e.target.id==="num"){if(S.chk){S.chk=null;var cb=document.getElementById("chk");if(cb)cb.remove()}
+    var clean=e.target.value.replace(/\D/g,"").slice(0,9);
+    if(clean!==e.target.value)e.target.value=clean;
+    S.num=clean;S.msg="";
+    var a=document.getElementById("add");if(a)a.disabled=!(S.type&&isRef(S.num));
+    var help=document.getElementById("refhelp");
+    if(S.num&&!isRef(S.num)){
+      if(!help){help=document.createElement("div");help.id="refhelp";help.className="note warn";e.target.closest(".field").insertAdjacentElement("afterend",help)}
+      help.textContent=refMsg(S.num);
+    }else if(help)help.remove();
   }
 });
 main.addEventListener("change",function(e){
@@ -832,24 +926,33 @@ main.addEventListener("click",function(e){
   else if(a==="acre"){cfg.acre=+b.dataset.v;saveCfg();render()}
   else if(a==="vl"){cfg.vl=b.dataset.v==="1";saveCfg();render()}
   else if(a==="veille"){openVeille()}
+  else if(a==="check"){doCheck();render()}
+  else if(a==="checkm"){doCheckMonth();render()}
+  else if(a==="chkdel"){
+    var cid=+b.dataset.id;
+    if(S.chkDel===cid){
+      items=items.filter(function(i){return i.id!==cid});
+      var wasM=S.chk&&S.chk.m;save();buzz();if(wasM)doCheckMonth();else doCheck();render();bump();toast("Supprimé",true);
+    }else{S.chkDel=cid;render()}
+  }
   else if(a==="export"){exportPDF()}
   else if(a==="backup"){backup()}
   else if(a==="restore"){var rin2=document.getElementById("rfile");if(rin2)rin2.click()}
   else if(a==="offcheck"){offSet("wait","Vérification en cours…");offCheck()}
-  else if(a==="goday"){S.date=b.dataset.d;S.tab="jour";S.msg="";S.del=null;S.anim=true;render();window.scrollTo(0,0)}
+  else if(a==="goday"){S.date=b.dataset.d;S.chk=null;S.tab="jour";S.msg="";S.del=null;S.anim=true;render();window.scrollTo(0,0)}
   else if(a==="prev"||a==="next"){
-    S.mM+=a==="next"?1:-1;
+    S.chk=null;S.mM+=a==="next"?1:-1;
     if(S.mM<0){S.mM=11;S.mY--}else if(S.mM>11){S.mM=0;S.mY++}
     S.anim=true;render();
   }
 });
 function doAdd(){
-  var n=S.num.trim();if(!S.type||!n)return;
+  var n=S.num.trim();if(!S.type||!isRef(n))return;
   var dup=items.filter(function(i){return i.n.toLowerCase()===n.toLowerCase()})[0];
   var nid=Date.now();
   items.push({id:nid,n:n,t:S.type,d:S.date,p:TM[S.type].price});
   save();buzz();S.newId=nid;
-  S.num="";S.del=null;
+  S.num="";S.del=null;S.chk=null;
   S.warn=!!dup;
   S.msg=dup?"N° "+n+" déjà saisi le "+lbl(dup.d,{day:"numeric",month:"long"})+". Ajouté quand même.":"N° "+n+" ajouté.";
   render();bump();toast("✓ Enregistré");
