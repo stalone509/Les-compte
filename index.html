@@ -72,6 +72,9 @@ h3{margin:22px 2px 8px;font-size:18px;font-weight:600;color:var(--muted)}
 .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .nav button{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--ink);font-size:22px;cursor:pointer}
 .nav b{font-size:21px;font-weight:600;text-transform:capitalize}
+.nav button{position:relative}
+.nav button.dot::after{content:"";position:absolute;top:5px;right:5px;width:11px;height:11px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--bg,#0b1220)}
+.nav .wb{font-size:13px;font-weight:600;color:#ef4444;white-space:nowrap}
 details{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;padding:0 14px}
 summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 0;min-height:52px}
 summary::-webkit-details-marker{display:none}
@@ -100,6 +103,15 @@ details .list{padding-bottom:12px}
 .chkbtn:active{transform:scale(.97)}
 .chkbox{border-radius:12px;padding:10px 12px;margin:0 0 10px;border:2px solid var(--green);background:color-mix(in srgb,var(--green) 14%,var(--card));animation:slideIn .3s ease}
 .chkbox.bad{border-color:var(--orange);background:color-mix(in srgb,var(--orange) 14%,var(--card))}
+.chkbox.sr{border-color:var(--line);background:var(--card)}
+.goal{border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:14px;margin:0 0 12px;animation:slideIn .3s ease}
+.goal .gt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:18px;font-weight:700;margin-bottom:10px}
+.goal .mini{flex:none;padding:6px 12px;border-radius:10px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer}
+.gbar{height:14px;border-radius:99px;background:var(--line);overflow:hidden}
+.gbar i{display:block;height:100%;border-radius:99px;background:var(--green);transition:width .5s ease}
+.gbar.done i{background:var(--orange)}
+.goal .gl{margin-top:10px;font-size:17px}
+.goal .gs{margin-top:2px;font-size:15px;color:var(--muted)}
 .chkbox .ct{font-size:18px;font-weight:700}
 .chkbox .ch{margin-top:10px;font-size:16px;font-weight:700;color:var(--muted)}
 .chkbox .cr{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:6px;font-size:16px}
@@ -281,11 +293,12 @@ function saveEdit(){
   if(!isRef(n)){toast("Il faut 9 chiffres exactement",true);return}
   var it=items.filter(function(i){return i.id===S.ed})[0];
   if(!it||!TM[S.edT]){S.ed=null;render();return}
-  var dup=items.some(function(i){return i.id!==it.id&&i.n.toLowerCase()===n.toLowerCase()});
+  var other=items.filter(function(i){return i.id!==it.id&&i.n.trim().toLowerCase()===n.toLowerCase()})[0];
+  if(other&&n.toLowerCase()!==String(it.n).trim().toLowerCase()){toast("N° déjà saisi le "+lbl(other.d,{day:"numeric",month:"long"})+" — refusé",true);return}
   if(S.edT!==it.t)it.p=TM[S.edT].price;
   it.n=n;it.t=S.edT;
   save();buzz();S.ed=null;render();bump();
-  toast(dup?"✓ Modifié (N° déjà saisi ailleurs)":"✓ Modifié");
+  toast("✓ Modifié");
 }
 function listHTML(l,withDel){
   if(!l.length)return '<div class="empty">Rien de saisi.</div>';
@@ -305,6 +318,7 @@ function chkHTML(){
     }).join("")+'</div>';
 }
 function isRef(n){return /^\d{9}$/.test(String(n).trim())}
+function findDup(n){n=String(n).trim();return items.filter(function(i){return i.n.toLowerCase()===n.toLowerCase()})[0]}
 function refMsg(n){
   n=String(n).trim();
   if(!/^\d+$/.test(n))return "Chiffres uniquement";
@@ -389,8 +403,8 @@ function viewJour(){
     '<button class="fin" data-act="veille"><span class="mn">🌙</span> Fin de mission</button>'+
     '<div class="types">'+types+'</div>'+
     '<div class="field"><input type="text" id="num" inputmode="numeric" maxlength="9" value="'+esc(S.num)+'" placeholder="N° d\'intervention (9 chiffres)" autocomplete="off" enterkeyhint="done"></div>'+
-    (S.num&&!isRef(S.num)?'<div class="note warn" id="refhelp">'+refMsg(S.num)+'</div>':'')+
-    '<button class="add" id="add" data-act="add"'+(S.type&&isRef(S.num)?'':' disabled')+'>Ajouter</button>'+
+    (S.num&&!isRef(S.num)?'<div class="note warn" id="refhelp">'+refMsg(S.num)+'</div>':(S.num&&isRef(S.num)&&findDup(S.num)?'<div class="note warn" id="refhelp">N° déjà saisi le '+lbl(findDup(S.num).d,{day:"numeric",month:"long"})+'</div>':''))+
+    '<button class="add" id="add" data-act="add"'+(S.type&&isRef(S.num)&&!findDup(S.num)?'':' disabled')+'>Ajouter</button>'+
     (S.msg?'<div class="note'+(S.warn?' warn':'')+'">'+esc(S.msg)+'</div>':'')+
     '<h3>Interventions du jour</h3>'+recapHTML(l)+listHTML(l,true);
 }
@@ -409,6 +423,35 @@ function viewSemaine(){
   }).join("")+'<div class="note">La semaine se remet à zéro chaque lundi. Les semaines passées sont dans l\'onglet Mois.</div>';
 }
 
+function saveGoal(){
+  var v=amt(S.gVal||"");
+  if(isNaN(v)||v<=0||v>10000000){toast("Montant invalide",true);return}
+  cfg.goal=r2(v);saveCfg();S.gEdit=false;render();buzz();toast("🎯 Objectif enregistré");
+}
+function goalHTML(tot){
+  if(S.gEdit)return '<div class="goal"><div class="gt"><span>🎯 Objectif du mois</span></div><div class="field"><input type="text" id="gnum" inputmode="decimal" value="'+esc(S.gVal||"")+'" placeholder="Montant en € (ex : 3000)" autocomplete="off" enterkeyhint="done"></div><div class="erow"><button class="add" data-act="gsave">Enregistrer</button><button class="ghost" data-act="gcancel">Annuler</button></div>'+(cfg.goal?'<button class="mini" style="margin-top:10px" data-act="gdel">Supprimer l\'objectif</button>':'')+'</div>';
+  if(!cfg.goal)return '<button class="chkbtn" data-act="gedit">🎯 Fixer un objectif du mois</button>';
+  var g=cfg.goal,p=tot/g*100,done=tot>=g,shown=done?100:Math.floor(p);
+  return '<div class="goal"><div class="gt"><span>🎯 Objectif du mois</span><button class="mini" data-act="gedit">Modifier</button></div><div class="gbar'+(done?' done':'')+'" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+shown+'"><i style="width:'+Math.min(100,p).toFixed(1)+'%"></i></div><div class="gl"><b>'+eur2(tot)+'</b> sur '+eur2(g)+' · '+shown+' %</div><div class="gs">'+(done?'🎉 Objectif atteint'+(tot>g?' (+'+eur2(tot-g)+')':''):'Il reste '+eur2(g-tot))+'</div></div>';
+}
+function searchHTML(){
+  var q=String(S.sq||"").trim();
+  if(!q)return "";
+  if(q.length<3)return '<div class="chkbox sr"><div class="ct">🔎 Tape au moins 3 caractères</div></div>';
+  var ql=q.toLowerCase();
+  var r=items.filter(function(i){return String(i.n).toLowerCase().indexOf(ql)>=0}).sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0});
+  if(!r.length)return '<div class="chkbox sr"><div class="ct">🔎 Aucun N° ne contient « '+esc(q)+' »</div></div>';
+  return '<div class="chkbox sr"><div class="ct">🔎 '+r.length+' résultat'+(r.length>1?'s':'')+'</div>'+r.slice(0,30).map(function(i){
+    var t=TM[i.t]||{name:i.t,e:""};
+    return '<div class="cr"><span><b>N° '+esc(String(i.n).trim())+'</b> · '+lbl(i.d,{day:"numeric",month:"short",year:"numeric"})+' · '+(t.e?t.e+' ':'')+t.name+' · '+eur(i.p)+'</span><span class="ca"><button class="mini" data-act="goday" data-d="'+i.d+'">Voir</button></span></div>';
+  }).join("")+(r.length>30?'<div class="ch">… et '+(r.length-30)+' autre'+(r.length-30>1?'s':'')+', précise ton N°</div>':'')+'</div>';
+}
+function monthIssues(y,m){
+  var pre=y+"-"+pad(m+1)+"-",g={},n=0;
+  items.forEach(function(i){var k=chkLow(i);g[k]=(g[k]||0)+1});
+  items.forEach(function(i){if(i.d.indexOf(pre)===0&&(badRef(i.n)||g[chkLow(i)]>1))n++});
+  return n;
+}
 function viewMois(){
   var y=S.mY,m=S.mM,last=new Date(y,m+1,0).getDate(),pre=y+"-"+pad(m+1)+"-";
   var weeks=[],idx={};
@@ -419,8 +462,11 @@ function viewMois(){
   }
   var inM=items.filter(function(i){return i.d.indexOf(pre)===0});
   setBanner("Total "+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long"}),sum(inM),plural(inM.length));
-  var html='<div class="nav"><button data-act="prev" aria-label="Mois précédent">‹</button><b>'+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+'</b><button data-act="next" aria-label="Mois suivant">›</button></div>';
+  var iP=monthIssues(m===0?y-1:y,(m+11)%12),iC=monthIssues(y,m),iN=monthIssues(m===11?y+1:y,(m+1)%12);
+  var html='<div class="nav"><button data-act="prev"'+(iP?' class="dot" aria-label="Mois précédent : '+iP+' à vérifier"':' aria-label="Mois précédent"')+'>‹</button><b>'+new Date(y,m,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"})+(iC?' <span class="wb">⚠️ '+iC+'</span>':'')+'</b><button data-act="next"'+(iN?' class="dot" aria-label="Mois suivant : '+iN+' à vérifier"':' aria-label="Mois suivant"')+'>›</button></div>';
   html+=(S.chk&&S.chk.m?chkHTML():'')+'<button class="chkbtn" data-act="checkm">🔍 Check du mois</button>';
+  html+=goalHTML(sum(inM));
+  html+='<div class="field"><input type="text" id="sq" inputmode="numeric" maxlength="20" value="'+esc(S.sq||"")+'" placeholder="🔎 Chercher un N° (3 chiffres mini)" autocomplete="off" enterkeyhint="search" aria-label="Chercher un numéro d\'intervention"></div><div id="sres">'+searchHTML()+'</div>';
   if(inM.length)html+='<h3 style="margin-top:6px">📊 Par type</h3>'+recapHTML(inM);
   var off=(new Date(y,m,1).getDay()+6)%7,td=today();
   html+='<div class="cal">'+["L","M","M","J","V","S","D"].map(function(x){return '<div class="dow">'+x+'</div>'}).join("");
@@ -495,26 +541,28 @@ function restoreFile(f){
     var d;try{d=JSON.parse(rd.result)}catch(e){toast("Fichier invalide",true);return}
     if(!d||d.app!=="ma-journee-fibre"){toast("Ce n'est pas une sauvegarde de l'app",true);return}
     var DT=/^\d{4}-\d{2}-\d{2}$/,num=function(v){return typeof v==="number"&&isFinite(v)};
-    var ids={},eids={},addI=0,addE=0;
+    function validDate(v){if(typeof v!=="string"||!DT.test(v))return false;var p=v.split("-"),y=+p[0],mo=+p[1],da=+p[2],dt=new Date(y,mo-1,da);return dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===da}
+    var ids={},eids={},addI=0,addE=0,skip=0;
     items.forEach(function(i){ids[i.id]=1});exps.forEach(function(x){eids[x.id]=1});
     (Array.isArray(d.items)?d.items:[]).forEach(function(i){
-      if(i&&num(i.id)&&!ids[i.id]&&typeof i.n==="string"&&i.n.length<=60&&TM[i.t]&&typeof i.d==="string"&&DT.test(i.d)&&num(i.p)&&i.p>=0&&i.p<=100000){
-        items.push({id:i.id,n:i.n,t:i.t,d:i.d,p:i.p});ids[i.id]=1;addI++;
-      }
+      if(i&&num(i.id)&&!ids[i.id]&&typeof i.n==="string"&&isRef(i.n)&&TM[i.t]&&validDate(i.d)&&num(i.p)&&i.p>=0&&i.p<=100000){
+        items.push({id:i.id,n:i.n.trim(),t:i.t,d:i.d,p:i.p});ids[i.id]=1;addI++;
+      }else if(i)skip++;
     });
     (Array.isArray(d.exps)?d.exps:[]).forEach(function(x){
-      if(x&&num(x.id)&&!eids[x.id]&&FM[x.k]&&num(x.a)&&x.a>=0&&x.a<=1000000&&typeof x.d==="string"&&DT.test(x.d)){
+      if(x&&num(x.id)&&!eids[x.id]&&FM[x.k]&&num(x.a)&&x.a>=0&&x.a<=1000000&&validDate(x.d)){
         exps.push({id:x.id,k:x.k,d:x.d,a:x.a});eids[x.id]=1;addE++;
-      }
+      }else if(x)skip++;
     });
     if(d.cfg&&typeof d.cfg==="object"){
       var c=d.cfg;
       if([0,1,2].indexOf(c.acre)>=0)cfg.acre=c.acre;
       cfg.vl=!!c.vl;cfg.tips=c.tips!==false;
+      if(num(c.goal)&&c.goal>0&&c.goal<=10000000)cfg.goal=c.goal;
       if(c.rates&&typeof c.rates==="object")["rate","cfp","vl","plafond"].forEach(function(k){var v=c.rates[k];if(num(v)&&v>=0&&v<=100000000)cfg.rates[k]=v});
     }
     save();saveF();saveCfg();render();
-    toast(addI||addE?"✓ Restauré : "+plural(addI)+" et "+addE+" note"+(addE>1?"s":""):"Déjà à jour : rien à ajouter");
+    toast(addI||addE?"✓ Restauré : "+plural(addI)+" et "+addE+" note"+(addE>1?"s":"")+(skip?" ("+skip+" ignorée"+(skip>1?"s":"")+")":""):(skip?"Rien d’ajouté : "+skip+" ligne"+(skip>1?"s":"")+" invalide"+(skip>1?"s":""):"Déjà à jour : rien à ajouter"));
   };
   rd.readAsText(f);
 }
@@ -655,11 +703,11 @@ function exportPDF(){
   toast("✓ PDF exporté");
 }
 
-var KEYC="ma-journee-fibre-cotis",DEF={rate:21.2,cfp:0.3,vl:1.7,plafond:83600},cfg={acre:0,vl:false,tips:true,rates:{rate:DEF.rate,cfp:DEF.cfp,vl:DEF.vl,plafond:DEF.plafond}};
+var KEYC="ma-journee-fibre-cotis",DEF={rate:21.2,cfp:0.3,vl:1.7,plafond:83600},cfg={acre:0,goal:0,vl:false,tips:true,rates:{rate:DEF.rate,cfp:DEF.cfp,vl:DEF.vl,plafond:DEF.plafond}};
 try{
   var rc=JSON.parse(localStorage.getItem(KEYC)||"null");
   if(rc&&typeof rc==="object"){
-    cfg.acre=[0,1,2].indexOf(rc.acre)>=0?rc.acre:0;cfg.vl=!!rc.vl;cfg.tips=rc.tips!==false;
+    cfg.acre=[0,1,2].indexOf(rc.acre)>=0?rc.acre:0;cfg.vl=!!rc.vl;cfg.tips=rc.tips!==false;if(typeof rc.goal==="number"&&isFinite(rc.goal)&&rc.goal>0&&rc.goal<=10000000)cfg.goal=rc.goal;
     if(rc.rates&&typeof rc.rates==="object")["rate","cfp","vl","plafond"].forEach(function(k){var v=rc.rates[k];if(typeof v==="number"&&isFinite(v)&&v>=0)cfg.rates[k]=v});
   }
 }catch(e){}
@@ -736,7 +784,7 @@ function viewCotis(){
     '<div class="crow tot"><span>📤 À payer à l\'URSSAF</span><b>'+eur2(c.tot)+'</b></div>'+
     '<div class="crow net"><span>✅ Il te reste</span><b>'+eur2(c.net)+'</b></div>'+
   '</div>';
-  if(ca>0)h+='<div class="note">Soit '+pct(c.tot/ca*100)+' de ton CA pour l\'URSSAF. Il te reste '+pct(c.net/ca*100)+'.</div>';
+  if(ca>0)h+='<div class="note">Soit '+(+(c.tot/ca*100).toFixed(1)).toString().replace('.',',')+' % de ton CA pour l\'URSSAF. Il te reste '+(+(c.net/ca*100).toFixed(1)).toString().replace('.',',')+' %.</div>';
   if(!cfg.vl)h+='<div class="note">L\'impôt sur le revenu n\'est pas inclus : sans versement libératoire, il se calcule l\'an prochain sur ta déclaration (le fisc retire d\'abord 50 % de ton CA).</div>';
 
   h+='<button class="exp" data-act="cedit">✏️ '+(S.cEdit?'Fermer':'Modifier les taux')+'</button>';
@@ -843,17 +891,21 @@ document.querySelector(".tabs").addEventListener("click",function(e){
 });
 var main=document.getElementById("main");
 main.addEventListener("input",function(e){
+  if(e.target.id==="sq"){S.sq=e.target.value;var sr=document.getElementById("sres");if(sr)sr.innerHTML=searchHTML()}
+  if(e.target.id==="gnum"){S.gVal=e.target.value}
   if(e.target.id==="enum"){var ec=e.target.value.replace(/\D/g,"").slice(0,9);if(ec!==e.target.value)e.target.value=ec;S.edN=ec}
   if(e.target.id==="fnum"){S.fNum=e.target.value;var fa=document.getElementById("fadd");if(fa)fa.disabled=!(S.fType&&!isNaN(amt(S.fNum)))}
   if(e.target.id==="num"){if(S.chk){S.chk=null;var cb=document.getElementById("chk");if(cb)cb.remove()}
     var clean=e.target.value.replace(/\D/g,"").slice(0,9);
     if(clean!==e.target.value)e.target.value=clean;
     S.num=clean;S.msg="";
-    var a=document.getElementById("add");if(a)a.disabled=!(S.type&&isRef(S.num));
+    var dup=S.num&&isRef(S.num)?findDup(S.num):null;
+    var a=document.getElementById("add");if(a)a.disabled=!(S.type&&isRef(S.num)&&!dup);
     var help=document.getElementById("refhelp");
-    if(S.num&&!isRef(S.num)){
+    var txt=S.num&&!isRef(S.num)?refMsg(S.num):(dup?"N° déjà saisi le "+lbl(dup.d,{day:"numeric",month:"long"}):"");
+    if(txt){
       if(!help){help=document.createElement("div");help.id="refhelp";help.className="note warn";e.target.closest(".field").insertAdjacentElement("afterend",help)}
-      help.textContent=refMsg(S.num);
+      help.textContent=txt;
     }else if(help)help.remove();
   }
 });
@@ -866,6 +918,8 @@ main.addEventListener("toggle",function(e){
   var w=e.target.dataset&&e.target.dataset.wk;if(w)S.open[w]=e.target.open;
 },true);
 main.addEventListener("keydown",function(e){
+  if(e.target.id==="gnum"&&e.key==="Enter"){e.preventDefault();saveGoal()}
+  if(e.target.id==="sq"&&e.key==="Enter"){e.preventDefault();e.target.blur()}
   if(e.target.id==="enum"&&e.key==="Enter"){e.preventDefault();saveEdit()}
   if(e.target.id==="fnum"&&e.key==="Enter"){e.preventDefault();doAddF()}
   if(e.target.id==="num"&&e.key==="Enter"){e.preventDefault();doAdd()}
@@ -935,6 +989,10 @@ main.addEventListener("click",function(e){
       var wasM=S.chk&&S.chk.m;save();buzz();if(wasM)doCheckMonth();else doCheck();render();bump();toast("Supprimé",true);
     }else{S.chkDel=cid;render()}
   }
+  else if(a==="gedit"){S.gEdit=true;S.gVal=cfg.goal?String(cfg.goal).replace(".",","):"";render();var gi=document.getElementById("gnum");if(gi)gi.focus()}
+  else if(a==="gcancel"){S.gEdit=false;render()}
+  else if(a==="gsave"){saveGoal()}
+  else if(a==="gdel"){cfg.goal=0;saveCfg();S.gEdit=false;render();toast("Objectif supprimé")}
   else if(a==="export"){exportPDF()}
   else if(a==="backup"){backup()}
   else if(a==="restore"){var rin2=document.getElementById("rfile");if(rin2)rin2.click()}
@@ -949,12 +1007,13 @@ main.addEventListener("click",function(e){
 function doAdd(){
   var n=S.num.trim();if(!S.type||!isRef(n))return;
   var dup=items.filter(function(i){return i.n.toLowerCase()===n.toLowerCase()})[0];
+  if(dup){toast("Déjà saisi le "+lbl(dup.d,{day:"numeric",month:"long"})+" — refusé",true);return}
   var nid=Date.now();
   items.push({id:nid,n:n,t:S.type,d:S.date,p:TM[S.type].price});
   save();buzz();S.newId=nid;
   S.num="";S.del=null;S.chk=null;
-  S.warn=!!dup;
-  S.msg=dup?"N° "+n+" déjà saisi le "+lbl(dup.d,{day:"numeric",month:"long"})+". Ajouté quand même.":"N° "+n+" ajouté.";
+  S.warn=false;
+  S.msg="N° "+n+" ajouté.";
   render();bump();toast("✓ Enregistré");
   var inp=document.getElementById("num");if(inp)inp.focus();
 }
